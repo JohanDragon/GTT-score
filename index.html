@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong Elo Pro</title>
+    <link rel="manifest" href="/manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen p-4">
+    <div id="app" class="max-w-md mx-auto">
+        <header class="text-center py-6">
+            <h1 class="text-3xl font-black text-yellow-500">TT-ELO TRACKER</h1>
+        </header>
+
+        <!-- Scoring Section -->
+        <div class="bg-slate-800 rounded-3xl p-6 shadow-2xl mb-6 border border-slate-700">
+            <div class="flex justify-between items-center mb-6">
+                <div class="text-center flex-1">
+                    <div id="p1-name-display" class="text-sm text-slate-400 mb-1">Player 1</div>
+                    <div id="score1" class="text-7xl font-bold mb-4">0</div>
+                    <button onclick="addScore(1)" class="bg-blue-600 w-full py-4 rounded-2xl font-bold active:scale-95 transition">+1</button>
+                </div>
+                <div class="px-4 text-slate-600 font-bold">VS</div>
+                <div class="text-center flex-1">
+                    <div id="p2-name-display" class="text-sm text-slate-400 mb-1">Player 2</div>
+                    <div id="score2" class="text-7xl font-bold mb-4">0</div>
+                    <button onclick="addScore(2)" class="bg-red-600 w-full py-4 rounded-2xl font-bold active:scale-95 transition">+1</button>
+                </div>
+            </div>
+            <div id="server-msg" class="text-center bg-yellow-500 text-black py-1 rounded-full text-xs font-bold uppercase tracking-widest">Server: Player 1</div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="bg-slate-800 rounded-2xl p-4">
+            <h2 class="text-lg font-bold mb-3 border-b border-slate-700 pb-2">Rankings</h2>
+            <div id="leaderboard" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <script>
+        let players = JSON.parse(localStorage.getItem('tt_data')) || [
+            { name: 'Player 1', elo: 1200 },
+            { name: 'Player 2', elo: 1200 }
+        ];
+        let s1 = 0, s2 = 0;
+
+        function addScore(p) {
+            p === 1 ? s1++ : s2++;
+            updateUI();
+            checkWin();
+        }
+
+        function checkWin() {
+            if ((s1 >= 11 || s2 >= 11) && Math.abs(s1 - s2) >= 2) {
+                const winner = s1 > s2 ? 0 : 1;
+                const loser = s1 > s2 ? 1 : 0;
+                updateElo(winner, loser);
+                alert(`${players[winner].name} Wins!`);
+                s1 = 0; s2 = 0;
+                updateUI();
+            }
+        }
+
+        function updateElo(wIdx, lIdx) {
+            const K = 32;
+            const exp = 1 / (1 + Math.pow(10, (players[lIdx].elo - players[wIdx].elo) / 400));
+            players[wIdx].elo += Math.round(K * (1 - exp));
+            players[lIdx].elo -= Math.round(K * (1 - exp));
+            localStorage.setItem('tt_data', JSON.stringify(players));
+        }
+
+        function updateUI() {
+            document.getElementById('score1').innerText = s1;
+            document.getElementById('score2').innerText = s2;
+            const total = s1 + s2;
+            const p1Serves = total >= 20 ? total % 2 === 0 : Math.floor(total / 2) % 2 === 0;
+            document.getElementById('server-msg').innerText = `Server: ${p1Serves ? players[0].name : players[1].name}`;
+            
+            const lb = document.getElementById('leaderboard');
+            lb.innerHTML = players.sort((a,b) => b.elo - a.elo).map(p => 
+                `<div class="flex justify-between text-sm"><span>${p.name}</span><span class="font-mono text-yellow-500">${p.elo}</span></div>`
+            ).join('');
+        }
+
+        updateUI();
+
+        // Register Service Worker for Offline Support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+    </script>
+</body>
+</html>
