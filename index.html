@@ -17,7 +17,6 @@
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
         
-        /* 橫向模式 (Landscape) 字體與間距加大優化 */
         @media (orientation: landscape) {
             .player-name-text { font-size: 1.5rem !important; margin-bottom: 0.5rem !important; }
             .player-sets-text { font-size: 1rem !important; margin-bottom: 1rem !important; }
@@ -68,13 +67,15 @@
 
             <div class="space-y-3">
                 <div class="flex items-center justify-between bg-slate-900/40 p-2 rounded-2xl border border-white/5">
-                    <select id="p1-select" onchange="syncMatchSelection()" class="w-[44%] bg-transparent py-2 outline-none text-blue-400 font-black text-center text-sm appearance-none"></select>
+                    <select id="p1-select" onchange="syncMatchSelection()" class="w-[44%] bg-transparent py-2 outline-none text-blue-400 font-black text-center text-sm appearance-none cursor-pointer"></select>
                     <div class="text-slate-700 font-black italic">VS</div>
-                    <select id="p2-select" onchange="syncMatchSelection()" class="w-[44%] bg-transparent py-2 outline-none text-red-400 font-black text-center text-sm appearance-none"></select>
+                    <select id="p2-select" onchange="syncMatchSelection()" class="w-[44%] bg-transparent py-2 outline-none text-red-400 font-black text-center text-sm appearance-none cursor-pointer"></select>
                 </div>
+                
                 <div class="flex gap-2">
-                    <input id="new-name" type="text" placeholder="Add Player..." class="flex-1 bg-slate-900/50 p-3 rounded-xl border border-slate-800 outline-none text-center text-sm">
+                    <input id="new-name" type="text" placeholder="New Player..." class="flex-1 bg-slate-900/50 p-3 rounded-xl border border-slate-800 outline-none text-center text-sm">
                     <button onclick="addPlayer()" class="bg-yellow-500 text-black px-5 font-black rounded-xl active:scale-95 transition text-xs">ADD</button>
+                    <button onclick="deleteSelectedPlayer()" class="bg-red-900/50 text-red-500 px-5 font-black rounded-xl active:scale-95 transition text-xs border border-red-900/50">DEL</button>
                 </div>
             </div>
         </section>
@@ -106,7 +107,7 @@
     </div>
 
     <script>
-        // 已更換為你的 Firebase Config
+        // 已自動填入你的專屬 Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
@@ -159,17 +160,35 @@
             const winnerName = p1Won ? players[gameState.p1Index].name : players[gameState.p2Index].name;
             document.getElementById('winner-name').innerText = winnerName;
             document.getElementById('custom-alert').style.display = 'block';
+            
+            const p1 = players[gameState.p1Index], p2 = players[gameState.p2Index];
+            const exp = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
+            const change = Math.round(32 * ((p1Won ? 1 : 0) - exp));
+            p1.elo += change; p2.elo -= change;
+
             gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = [];
             cloudPush();
         }
 
         function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
+        function deleteSelectedPlayer() {
+            const index = document.getElementById('p1-select').selectedIndex;
+            if (players.length <= 2) { alert("Min 2 players required."); return; }
+            if (confirm(`Delete ${players[index].name}?`)) {
+                players.splice(index, 1);
+                gameState.p1Index = 0; gameState.p2Index = 1;
+                cloudPush();
+            }
+        }
         function undo() { if (gameState.history.length > 0) { const last = JSON.parse(gameState.history.pop()); gameState.p1Score = last.s1; gameState.p2Score = last.s2; gameState.p1Games = last.g1; gameState.p2Games = last.g2; gameState.gameFirstServer = last.fs; cloudPush(); } }
-        function resetMatch() { if(confirm("Reset?")){ gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = []; cloudPush(); } }
+        function resetMatch() { if(confirm("Reset current scores?")){ gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = []; cloudPush(); } }
         function updatePlayerOptions() {
             const options = players.map(p => `<option value="${p.name}">${p.name} [${p.elo}]</option>`).join('');
             const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
-            if (s1.options.length !== players.length) { s1.innerHTML = options; s2.innerHTML = options; s1.selectedIndex = gameState.p1Index; s2.selectedIndex = gameState.p2Index; }
+            if (s1.options.length !== players.length) { 
+                s1.innerHTML = options; s2.innerHTML = options; 
+                s1.selectedIndex = gameState.p1Index; s2.selectedIndex = gameState.p2Index; 
+            }
         }
         function updateUI() {
             document.getElementById('score-1').innerText = gameState.p1Score;
