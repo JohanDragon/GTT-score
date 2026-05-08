@@ -13,7 +13,6 @@
         body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
         .sync-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
         .online { background: #10b981; box-shadow: 0 0 8px #10b981; }
-        /* 自定義彈窗動畫 */
         #custom-alert { display: none; }
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
@@ -88,7 +87,7 @@
         </main>
 
         <div class="flex gap-4">
-            <button onclick="undo()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 text-xs tracking-widest uppercase border border-slate-700">Return</button>
+            <button onclick="undo()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 text-xs tracking-widest uppercase border border-slate-700">Return (Max 2)</button>
             <button onclick="resetMatch()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 text-xs tracking-widest uppercase border border-slate-700">Reset</button>
         </div>
 
@@ -102,15 +101,18 @@
     </div>
 
     <script>
+        // ======= 已套入你的 Firebase Config =======
         const firebaseConfig = {
-            apiKey: "你的_API_KEY",
-            authDomain: "你的_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://你的_PROJECT_ID.firebaseio.com",
-            projectId: "你的_PROJECT_ID",
-            storageBucket: "你的_PROJECT_ID.appspot.com",
-            messagingSenderId: "你的_SENDER_ID",
-            appId: "你的_APP_ID"
+            apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
+            authDomain: "gtt-rankings.firebaseapp.com",
+            databaseURL: "https://gtt-rankings-default-rtdb.firebaseio.com",
+            projectId: "gtt-rankings",
+            storageBucket: "gtt-rankings.firebasestorage.app",
+            messagingSenderId: "96701388869",
+            appId: "1:96701388869:web:f66a13c8cffe70c0c4eb2c",
+            measurementId: "G-MJWRM5ZV8K"
         };
+        // ==========================================
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -121,9 +123,7 @@
         let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: 0, p2Index: 1 };
         const K = 32;
 
-        function cloudPush() {
-            dataRef.set({ players, matchHistory, gameState });
-        }
+        function cloudPush() { dataRef.set({ players, matchHistory, gameState }); }
 
         dataRef.on('value', (snapshot) => {
             const data = snapshot.val();
@@ -133,6 +133,7 @@
                 if (data.gameState) {
                     gameState = data.gameState;
                     document.getElementById('match-format').value = gameState.matchFormat;
+                    document.getElementById('manual-server').value = gameState.gameFirstServer;
                 }
                 updateUI(); renderHistory(); updatePlayerOptions();
                 document.getElementById('status-dot').classList.add('online');
@@ -180,14 +181,10 @@
             gameState.history = [];
             
             cloudPush();
-            // 顯示自定義彈窗
             document.getElementById('custom-alert').style.display = 'block';
         }
 
-        function closeAlert() {
-            document.getElementById('custom-alert').style.display = 'none';
-        }
-
+        function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
         function undo() {
             if (gameState.history && gameState.history.length > 0) {
                 const last = JSON.parse(gameState.history.pop());
@@ -199,7 +196,7 @@
         }
 
         function resetMatch() {
-            if(!confirm("Reset?")) return;
+            if(!confirm("Reset current scores?")) return;
             gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = [];
             cloudPush();
         }
@@ -255,7 +252,7 @@
             `).join('');
         }
 
-        function clearHistory() { if(confirm("Clear?")) { matchHistory = []; cloudPush(); } }
+        function clearHistory() { if(confirm("Clear history?")) { matchHistory = []; cloudPush(); } }
     </script>
 </body>
 </html>
