@@ -2,112 +2,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GTT Rankings - Professional System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GTT Rankings - Return Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .active-side { border: 6px solid #fbbf24; transform: scale(1.02); box-shadow: 0 0 30px rgba(251, 191, 36, 0.4); }
         .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 font-sans select-none">
 
     <div class="max-w-2xl mx-auto space-y-6 pb-12">
-        <header class="text-center py-6">
+        <header class="text-center py-4">
             <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter">
                 GTT Rankings
             </h1>
-            <p class="text-slate-500 text-[10px] font-bold tracking-[0.3em] mt-1 uppercase">Advanced Competition Tracker</p>
+            <p class="text-slate-500 text-[10px] font-bold tracking-[0.3em] mt-1 uppercase text-center">Pro Competition System</p>
         </header>
 
         <section class="glass p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-2 font-bold">Match Format</label>
-                    <select id="match-format" class="w-full bg-slate-800 p-3 rounded-xl outline-none border border-slate-700 font-bold">
-                        <option value="3">Best of 5 (Win 3)</option>
-                        <option value="4">Best of 7 (Win 4)</option>
-                        <option value="1">Single Set (Win 1)</option>
+                    <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-2 font-bold text-center">Format</label>
+                    <select id="match-format" class="w-full bg-slate-800 p-3 rounded-xl outline-none border border-slate-700 font-bold text-center">
+                        <option value="3">Best of 5</option>
+                        <option value="4">Best of 7</option>
+                        <option value="1">Win 1 Set</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-2 font-bold">Game 1 Server</label>
-                    <select id="manual-server" onchange="initGameServer()" class="w-full bg-slate-800 p-3 rounded-xl outline-none border border-slate-700 font-bold text-yellow-500">
-                        <option value="1">Player 1 Starts</option>
-                        <option value="2">Player 2 Starts</option>
+                    <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-2 font-bold text-center">G1 Server</label>
+                    <select id="manual-server" onchange="initGameServer()" class="w-full bg-slate-800 p-3 rounded-xl outline-none border border-slate-700 font-bold text-yellow-500 text-center">
+                        <option value="1">P1 Start</option>
+                        <option value="2">P2 Start</option>
                     </select>
                 </div>
             </div>
 
             <div class="space-y-4">
                 <div class="flex gap-3 items-center">
-                    <div class="flex-1">
-                        <label class="text-[10px] text-slate-500 font-bold ml-1 uppercase">P1 Selection</label>
-                        <select id="p1-select" onchange="updateUI()" class="w-full bg-slate-700 p-3 rounded-xl outline-none text-blue-400 font-bold"></select>
-                    </div>
-                    <span class="text-2xl font-black text-slate-600 mt-4 italic text-center">VS</span>
-                    <div class="flex-1">
-                        <label class="text-[10px] text-slate-500 font-bold ml-1 uppercase">P2 Selection</label>
-                        <select id="p2-select" onchange="updateUI()" class="w-full bg-slate-700 p-3 rounded-xl outline-none text-red-400 font-bold"></select>
-                    </div>
+                    <select id="p1-select" onchange="updateUI()" class="flex-1 bg-slate-700 p-3 rounded-xl outline-none text-blue-400 font-bold text-center"></select>
+                    <span class="text-xl font-black text-slate-600 italic">VS</span>
+                    <select id="p2-select" onchange="updateUI()" class="flex-1 bg-slate-700 p-3 rounded-xl outline-none text-red-400 font-bold text-center"></select>
                 </div>
-                
                 <div class="flex gap-2">
-                    <input id="new-name" type="text" placeholder="Add player name..." class="flex-1 bg-slate-900 p-3 rounded-xl border border-slate-800 outline-none focus:border-yellow-500">
-                    <button onclick="addPlayer()" class="bg-yellow-500 text-black px-6 font-black rounded-xl hover:bg-yellow-400 transition">ADD</button>
-                    <button onclick="deleteSelectedPlayer()" class="bg-red-900/50 text-red-400 px-4 font-black rounded-xl hover:bg-red-800 transition">DEL</button>
+                    <input id="new-name" type="text" placeholder="Add..." class="flex-1 bg-slate-900 p-3 rounded-xl border border-slate-800 outline-none text-center">
+                    <button onclick="addPlayer()" class="bg-yellow-500 text-black px-4 font-black rounded-xl active:scale-95 transition">ADD</button>
+                    <button onclick="deleteSelectedPlayer()" class="bg-red-900/50 text-red-400 px-4 font-black rounded-xl active:scale-95 transition">DEL</button>
                 </div>
             </div>
         </section>
 
         <main class="grid grid-cols-2 gap-4">
             <div id="card-1" class="glass p-6 rounded-[2.5rem] border border-slate-800 text-center transition-all">
-                <div id="name-1" class="text-lg font-bold text-blue-400 mb-2 truncate px-2">---</div>
+                <div id="name-1" class="text-sm font-bold text-blue-400 mb-1 truncate px-1">---</div>
                 <div id="games-1" class="text-[10px] text-slate-500 mb-1 font-mono font-bold uppercase tracking-widest">Games: 0</div>
-                <div id="score-1" class="text-[8rem] leading-none font-black mb-8">0</div>
-                <button onclick="changeScore(1, 1)" class="w-full bg-blue-600 h-28 rounded-3xl text-4xl font-black shadow-xl active:scale-90 transition">＋</button>
+                <div id="score-1" class="text-[7.5rem] leading-none font-black mb-6">0</div>
+                <button onclick="changeScore(1, 1)" class="w-full bg-blue-600 h-28 rounded-3xl text-5xl font-black shadow-xl active:bg-blue-500 transition">＋</button>
             </div>
 
             <div id="card-2" class="glass p-6 rounded-[2.5rem] border border-slate-800 text-center transition-all">
-                <div id="name-2" class="text-lg font-bold text-red-400 mb-2 truncate px-2">---</div>
+                <div id="name-2" class="text-sm font-bold text-red-400 mb-1 truncate px-1">---</div>
                 <div id="games-2" class="text-[10px] text-slate-500 mb-1 font-mono font-bold uppercase tracking-widest">Games: 0</div>
-                <div id="score-2" class="text-[8rem] leading-none font-black mb-8">0</div>
-                <button onclick="changeScore(2, 1)" class="w-full bg-red-600 h-28 rounded-3xl text-4xl font-black shadow-xl active:scale-90 transition">＋</button>
+                <div id="score-2" class="text-[7.5rem] leading-none font-black mb-6">0</div>
+                <button onclick="changeScore(2, 1)" class="w-full bg-red-600 h-28 rounded-3xl text-5xl font-black shadow-xl active:bg-red-500 transition">＋</button>
             </div>
         </main>
 
         <div class="flex gap-4">
-            <button onclick="undo()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 hover:text-white transition uppercase text-xs tracking-widest">Undo Action</button>
-            <button onclick="resetMatch()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 hover:text-red-400 transition uppercase text-xs tracking-widest">Reset Match</button>
+            <button onclick="undo()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 text-xs tracking-widest uppercase border border-slate-700 active:text-white">Return (Max 2)</button>
+            <button onclick="resetMatch()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 text-xs tracking-widest uppercase border border-slate-700 active:text-red-400">Reset</button>
         </div>
 
-        <section class="space-y-4">
+        <section class="space-y-3">
             <div class="flex justify-between items-center px-2">
-                <h2 class="text-xl font-black uppercase tracking-tighter text-slate-400">Match History</h2>
-                <button onclick="clearHistory()" class="text-[10px] text-slate-600 hover:text-red-500 uppercase font-bold tracking-widest">Clear All</button>
+                <h2 class="text-lg font-black uppercase text-slate-500 tracking-tighter">Recent 5 Matches</h2>
+                <button onclick="clearHistory()" class="text-[10px] text-slate-700 font-bold uppercase">Clear</button>
             </div>
-            <div id="history-container" class="space-y-3">
-                </div>
+            <div id="history-container" class="space-y-2"></div>
         </section>
     </div>
 
     <script>
         let players = JSON.parse(localStorage.getItem('gtt_players')) || [
-            { name: 'Player A', elo: 1200 },
-            { name: 'Player B', elo: 1200 }
+            { name: 'Player 1', elo: 1200 }, { name: 'Player 2', elo: 1200 }
         ];
-        
         let matchHistory = JSON.parse(localStorage.getItem('gtt_history')) || [];
-        
-        let gameState = {
-            p1Score: 0, p2Score: 0,
-            p1Games: 0, p2Games: 0,
-            gameFirstServer: 1, 
-            history: []
-        };
-
+        let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [] };
         const K = 32;
 
         function initGameServer() {
@@ -116,30 +98,31 @@
         }
 
         function addPlayer() {
-            const input = document.getElementById('new-name');
-            const name = input.value.trim();
+            const name = document.getElementById('new-name').value.trim();
             if (!name) return;
-            players.push({ name: name, elo: 1200 });
-            input.value = '';
-            save();
-            updatePlayerList();
+            players.push({ name, elo: 1200 });
+            document.getElementById('new-name').value = '';
+            save(); updatePlayerList();
         }
 
         function deleteSelectedPlayer() {
-            const p1Idx = document.getElementById('p1-select').selectedIndex;
-            if (players.length <= 2) {
-                alert("At least 2 players are required.");
-                return;
-            }
-            if (confirm(`Are you sure you want to delete ${players[p1Idx].name}?`)) {
-                players.splice(p1Idx, 1);
-                save();
-                updatePlayerList();
+            const idx = document.getElementById('p1-select').selectedIndex;
+            if (players.length <= 2) return alert("Min 2 players");
+            if (confirm(`Delete ${players[idx].name}?`)) {
+                players.splice(idx, 1);
+                save(); updatePlayerList();
             }
         }
 
         function changeScore(player, val) {
-            gameState.history.push(JSON.parse(JSON.stringify(gameState)));
+            // Return (Undo) logic: limit to 2 steps
+            gameState.history.push(JSON.stringify({
+                s1: gameState.p1Score, s2: gameState.p2Score, 
+                g1: gameState.p1Games, g2: gameState.p2Games, 
+                fs: gameState.gameFirstServer
+            }));
+            if (gameState.history.length > 2) gameState.history.shift();
+
             player === 1 ? gameState.p1Score += val : gameState.p2Score += val;
             checkGameEnd();
             updateUI();
@@ -147,17 +130,19 @@
 
         function undo() {
             if (gameState.history.length > 0) {
-                gameState = gameState.history.pop();
+                const last = JSON.parse(gameState.history.pop());
+                gameState.p1Score = last.s1; gameState.p2Score = last.s2;
+                gameState.p1Games = last.g1; gameState.p2Games = last.g2;
+                gameState.gameFirstServer = last.fs;
                 updateUI();
             }
         }
 
         function checkGameEnd() {
-            const diff = Math.abs(gameState.p1Score - gameState.p2Score);
-            if ((gameState.p1Score >= 11 || gameState.p2Score >= 11) && diff >= 2) {
+            const d = Math.abs(gameState.p1Score - gameState.p2Score);
+            if ((gameState.p1Score >= 11 || gameState.p2Score >= 11) && d >= 2) {
                 gameState.p1Score > gameState.p2Score ? gameState.p1Games++ : gameState.p2Games++;
-                gameState.p1Score = 0;
-                gameState.p2Score = 0;
+                gameState.p1Score = 0; gameState.p2Score = 0;
                 gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
                 checkMatchEnd();
             }
@@ -166,67 +151,41 @@
         function checkMatchEnd() {
             const winReq = parseInt(document.getElementById('match-format').value);
             if (gameState.p1Games === winReq || gameState.p2Games === winReq) {
-                const p1Idx = document.getElementById('p1-select').selectedIndex;
-                const p2Idx = document.getElementById('p2-select').selectedIndex;
+                const p1 = document.getElementById('p1-select').selectedIndex;
+                const p2 = document.getElementById('p2-select').selectedIndex;
                 const p1Won = gameState.p1Games === winReq;
-                
-                recordMatch(p1Idx, p2Idx, p1Won, gameState.p1Games, gameState.p2Games);
-                updateElo(p1Idx, p2Idx, p1Won);
-                
-                alert("MATCH OVER!");
-                resetMatch();
+                recordMatch(p1, p2, p1Won, gameState.p1Games, gameState.p2Games);
+                updateElo(p1, p2, p1Won);
+                setTimeout(() => { alert("GTT MATCH OVER"); resetMatch(); }, 50);
             }
         }
 
-        function recordMatch(p1Idx, p2Idx, p1Won, g1, g2) {
-            const log = {
-                date: new Date().toLocaleString(),
-                p1: players[p1Idx].name,
-                p2: players[p2Idx].name,
-                score: `${g1} - ${g2}`,
-                winner: p1Won ? players[p1Idx].name : players[p2Idx].name
-            };
-            matchHistory.unshift(log);
-            if (matchHistory.length > 50) matchHistory.pop(); // Keep last 50
+        function recordMatch(i1, i2, won, g1, g2) {
+            matchHistory.unshift({
+                d: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                n1: players[i1].name, n2: players[i2].name,
+                s: `${g1}-${g2}`, w: won ? players[i1].name : players[i2].name
+            });
+            if (matchHistory.length > 5) matchHistory.pop();
             localStorage.setItem('gtt_history', JSON.stringify(matchHistory));
             renderHistory();
         }
 
         function renderHistory() {
-            const container = document.getElementById('history-container');
-            container.innerHTML = matchHistory.map(h => `
-                <div class="glass p-4 rounded-2xl border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <div class="text-[10px] text-slate-600 font-bold uppercase">${h.date}</div>
-                        <div class="font-bold text-sm">
-                            <span class="${h.winner === h.p1 ? 'text-yellow-500' : 'text-slate-400'}">${h.p1}</span>
-                            <span class="text-slate-700 px-1">vs</span>
-                            <span class="${h.winner === h.p2 ? 'text-yellow-500' : 'text-slate-400'}">${h.p2}</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-xl font-black font-mono">${h.score}</div>
-                        <div class="text-[9px] text-yellow-600 font-black uppercase">Winner: ${h.winner}</div>
-                    </div>
+            document.getElementById('history-container').innerHTML = matchHistory.map(h => `
+                <div class="glass p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                    <div class="font-bold"><span class="text-blue-400">${h.n1}</span> vs <span class="text-red-400">${h.n2}</span></div>
+                    <div class="text-right"><span class="text-yellow-500 font-black mr-2">${h.s}</span> <span class="text-slate-600 font-mono">${h.d}</span></div>
                 </div>
             `).join('');
         }
 
-        function clearHistory() {
-            if (confirm("Clear all match history?")) {
-                matchHistory = [];
-                localStorage.setItem('gtt_history', JSON.stringify(matchHistory));
-                renderHistory();
-            }
-        }
-
-        function updateElo(idx1, idx2, p1Won) {
-            const p1 = players[idx1], p2 = players[idx2];
+        function updateElo(i1, i2, p1Won) {
+            const p1 = players[i1], p2 = players[i2];
             const exp = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
             const change = Math.round(K * ((p1Won ? 1 : 0) - exp));
             p1.elo += change; p2.elo -= change;
-            save();
-            updatePlayerList();
+            save(); updatePlayerList();
         }
 
         function updateUI() {
@@ -234,41 +193,35 @@
             document.getElementById('score-2').innerText = gameState.p2Score;
             document.getElementById('games-1').innerText = `Games: ${gameState.p1Games}`;
             document.getElementById('games-2').innerText = `Games: ${gameState.p2Games}`;
-            
-            const sel1 = document.getElementById('p1-select');
-            const sel2 = document.getElementById('p2-select');
-            if(sel1.value) document.getElementById('name-1').innerText = sel1.options[sel1.selectedIndex].text.split(' [')[0];
-            if(sel2.value) document.getElementById('name-2').innerText = sel2.options[sel2.selectedIndex].text.split(' [')[0];
-
+            const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
+            if(s1.value) document.getElementById('name-1').innerText = s1.options[s1.selectedIndex].text.split(' [')[0];
+            if(s2.value) document.getElementById('name-2').innerText = s2.options[s2.selectedIndex].text.split(' [')[0];
             const total = gameState.p1Score + gameState.p2Score;
-            const isDeuce = (gameState.p1Score >= 10 && gameState.p2Score >= 10);
-            let p1Serves;
-
-            const currentTurn = isDeuce ? (total % 2 === 0) : (Math.floor(total / 2) % 2 === 0);
-            p1Serves = (gameState.gameFirstServer === 1) ? currentTurn : !currentTurn;
-
+            const deuce = (gameState.p1Score >= 10 && gameState.p2Score >= 10);
+            const turn = deuce ? (total % 2 === 0) : (Math.floor(total / 2) % 2 === 0);
+            const p1Serves = (gameState.gameFirstServer === 1) ? turn : !turn;
             document.getElementById('card-1').classList.toggle('active-side', p1Serves);
             document.getElementById('card-2').classList.toggle('active-side', !p1Serves);
         }
 
         function updatePlayerList() {
-            const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
             const options = players.map(p => `<option value="${p.name}">${p.name} [${p.elo}]</option>`).join('');
-            s1.innerHTML = options; s2.innerHTML = options;
-            if (players.length > 1) s2.selectedIndex = 1;
+            document.getElementById('p1-select').innerHTML = options;
+            document.getElementById('p2-select').innerHTML = options;
+            if (players.length > 1) document.getElementById('p2-select').selectedIndex = 1;
             updateUI();
         }
 
         function resetMatch() {
-            const initialServer = parseInt(document.getElementById('manual-server').value);
-            gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: initialServer, history: [] };
-            updateUI();
+            gameState.p1Score = 0; gameState.p2Score = 0;
+            gameState.p1Games = 0; gameState.p2Games = 0;
+            gameState.history = [];
+            initGameServer();
         }
 
+        function clearHistory() { matchHistory = []; localStorage.removeItem('gtt_history'); renderHistory(); }
         function save() { localStorage.setItem('gtt_players', JSON.stringify(players)); }
-        
-        updatePlayerList();
-        renderHistory();
+        updatePlayerList(); renderHistory();
     </script>
 </body>
 </html>
