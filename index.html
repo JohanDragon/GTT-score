@@ -13,25 +13,24 @@
         .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
         body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
         
-        /* 狀態燈號基礎樣式 */
         .sync-indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; }
         .online { background: #10b981; box-shadow: 0 0 10px #10b981; }
         
-        /* 桌次按鈕內的燈號 */
+        /* 狀態燈號樣式 */
         .status-light {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: #334155;
             transition: all 0.3s ease;
             display: inline-block;
         }
 
+        /* 加大字體的桌次按鈕 */
         .table-btn { 
-            @apply flex-1 py-4 text-[12px] font-black rounded-xl transition-all border border-slate-800 bg-slate-900 text-slate-500 flex items-center justify-center gap-3; 
+            @apply flex-1 py-5 text-[18px] font-black rounded-xl transition-all border border-slate-800 bg-slate-900 text-slate-500 flex items-center justify-center gap-3 uppercase italic; 
         }
 
-        /* 啟動狀態的按鈕與燈號 */
         .table-btn.active { 
             @apply bg-slate-800 text-yellow-500 border-yellow-500 shadow-lg shadow-yellow-500/10; 
         }
@@ -51,6 +50,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 font-sans select-none">
 
+    <!-- 結算彈窗 -->
     <div id="custom-alert" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] w-[85%] max-w-xs glass border border-yellow-500/50 p-8 rounded-[2.5rem] text-center shadow-2xl fade-in">
         <div class="text-5xl mb-4">🏆</div>
         <h2 class="text-2xl font-black uppercase mb-2">Match Finished</h2>
@@ -60,17 +60,21 @@
 
     <div class="max-w-4xl mx-auto space-y-5 pb-12">
         <header class="text-center py-4">
-            <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter italic">GTT Rankings</h1>
+            <!-- 標題設定為同一列 -->
+            <h1 class="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tight italic">
+                GTT RANKINGS
+            </h1>
             
-            <div class="flex gap-2 mt-6 max-w-md mx-auto">
+            <!-- 加大字體的桌次選擇 -->
+            <div class="flex gap-2 mt-8 max-w-md mx-auto">
                 <button onclick="switchTable(1)" id="btn-t1" class="table-btn">
-                    <span class="status-light"></span> TABLE 1
+                    <span class="status-light"></span> T1
                 </button>
                 <button onclick="switchTable(2)" id="btn-t2" class="table-btn">
-                    <span class="status-light"></span> TABLE 2
+                    <span class="status-light"></span> T2
                 </button>
                 <button onclick="switchTable(3)" id="btn-t3" class="table-btn">
-                    <span class="status-light"></span> TABLE 3
+                    <span class="status-light"></span> T3
                 </button>
             </div>
 
@@ -85,6 +89,7 @@
             </div>
         </header>
 
+        <!-- 設定區域 -->
         <section class="glass p-5 rounded-[2rem] border border-slate-800 shadow-2xl space-y-5">
             <div class="grid grid-cols-2 gap-4">
                 <select id="match-format" onchange="syncSettings()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-sm outline-none">
@@ -111,6 +116,7 @@
             </div>
         </section>
 
+        <!-- 計分板主區 -->
         <main class="grid grid-cols-2 gap-4">
             <div id="card-1" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
@@ -147,8 +153,8 @@
     </div>
 
     <script>
-        // 已經填入你提供的 Firebase 配置
-        const firebaseConfig = {
+        // 填入您提供的 Firebase 配置
+        const firebaseConfig = { 
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
             databaseURL: "https://gtt-rankings-default-rtdb.firebaseio.com",
@@ -158,7 +164,7 @@
             appId: "1:96701388869:web:f66a13c8cffe70c0c4eb2c",
             measurementId: "G-MJWRM5ZV8K"
         };
-
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const urlParams = new URLSearchParams(window.location.search);
@@ -226,19 +232,15 @@
         function changeScore(p, v) {
             if (gameState.isGameOver) return;
             if (gameState.p1Index === -1 || gameState.p2Index === -1) { alert("Please Select Players!"); return; }
-
             gameState.history.push(JSON.stringify({ s1: gameState.p1Score, s2: gameState.p2Score, g1: gameState.p1Games, g2: gameState.p2Games, fs: gameState.gameFirstServer, ss: [...(gameState.setScores || [])] }));
             if (gameState.history.length > 2) gameState.history.shift();
-            
             p === 1 ? gameState.p1Score += v : gameState.p2Score += v;
             const diff = Math.abs(gameState.p1Score - gameState.p2Score);
-            
             if ((gameState.p1Score >= 11 || gameState.p2Score >= 11) && diff >= 2) {
                 gameState.setScores.push(`${gameState.p1Score}-${gameState.p2Score}`);
                 gameState.p1Score > gameState.p2Score ? gameState.p1Games++ : gameState.p2Games++;
                 gameState.p1Score = 0; gameState.p2Score = 0;
                 gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
-                
                 if (gameState.p1Games >= gameState.matchFormat || gameState.p2Games >= gameState.matchFormat) { 
                     gameState.isGameOver = true;
                     saveMatchResult(); 
@@ -251,7 +253,6 @@
         function saveMatchResult() {
             const p1Won = gameState.p1Games > gameState.p2Games;
             const p1 = players[gameState.p1Index], p2 = players[gameState.p2Index];
-            
             if (isAdmin) {
                 const exp = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
                 const gain = Math.round(32 * ((p1Won ? 1 : 0) - exp));
@@ -261,7 +262,6 @@
             } else {
                 document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} WINS!`;
             }
-
             globalHistory.unshift({
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 p1: p1.name, p2: p2.name,
@@ -272,7 +272,6 @@
             });
             if (globalHistory.length > 15) globalHistory.pop();
             pushHistory();
-
             document.getElementById('custom-alert').style.display = 'block';
             pushTable();
         }
@@ -322,22 +321,19 @@
             document.getElementById('name-1').innerText = players[gameState.p1Index]?.name || "SELECT P1";
             document.getElementById('name-2').innerText = players[gameState.p2Index]?.name || "SELECT P2";
             document.getElementById('match-format').value = gameState.matchFormat;
-            
             const total = gameState.p1Score + gameState.p2Score;
             const turn = (gameState.p1Score >= 10 && gameState.p2Score >= 10) ? (total % 2 === 0) : (Math.floor(total / 2) % 2 === 0);
             const p1Serves = (gameState.gameFirstServer === 1) ? turn : !turn;
-            
             document.getElementById('card-1').classList.toggle('active-side', gameState.p1Index !== -1 && p1Serves);
             document.getElementById('card-2').classList.toggle('active-side', gameState.p2Index !== -1 && !p1Serves);
-            
             document.getElementById('p1-select').value = gameState.p1Index;
             document.getElementById('p2-select').value = gameState.p2Index;
         }
 
         function updatePlayerOptions() {
             const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
-            let options = `<option value="-1">-- SELECT PLAYER --</option>`;
-            options += players.map((p, i) => `<option value="${i}">${p.name} [${p.elo}]</option>`).join('');
+            let options = `<option value="-1">-- SELECT --</option>`;
+            options += players.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
             s1.innerHTML = options; s2.innerHTML = options;
             s1.value = gameState.p1Index; s2.value = gameState.p2Index;
         }
@@ -352,7 +348,7 @@
         }
         
         function resetMatch() { 
-            if(confirm("Reset Current Match?")){ 
+            if(confirm("Reset Match?")){ 
                 Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1, isGameOver: false }); 
                 pushTable(); 
             } 
@@ -362,7 +358,7 @@
         function initGameServer() { gameState.gameFirstServer = parseInt(document.getElementById('manual-server').value); pushTable(); }
         function syncMatchSelection() { gameState.p1Index = parseInt(document.getElementById('p1-select').value); gameState.p2Index = parseInt(document.getElementById('p2-select').value); pushTable(); }
         function addPlayer() { const n = document.getElementById('new-name').value.trim(); if(n){ players.push({name:n, elo:1200}); document.getElementById('new-name').value=''; pushPlayers(); } }
-        function deleteSelectedPlayer() { if(isAdmin && gameState.p1Index !== -1 && confirm("Delete Player?")){ players.splice(gameState.p1Index, 1); pushPlayers(); } }
+        function deleteSelectedPlayer() { if(isAdmin && gameState.p1Index !== -1 && confirm("Delete?")){ players.splice(gameState.p1Index, 1); pushPlayers(); } }
 
         switchTable(currentTable);
     </script>
