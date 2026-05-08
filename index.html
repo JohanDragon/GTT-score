@@ -28,41 +28,32 @@
 
     <div id="custom-alert" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] w-[85%] max-w-xs glass border border-yellow-500/50 p-8 rounded-[2.5rem] text-center shadow-2xl fade-in">
         <div class="text-5xl mb-4">🏆</div>
-        <h2 class="text-2xl font-black uppercase tracking-tighter mb-2">Game Finished</h2>
+        <h2 class="text-2xl font-black uppercase tracking-tighter mb-2">Match Over</h2>
         <p id="winner-name" class="text-yellow-500 font-bold mb-6 italic text-lg"></p>
-        <button onclick="closeAlert()" class="w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase active:scale-95 transition">Confirm</button>
+        <button onclick="closeAlert()" class="w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase active:scale-95 transition">OK</button>
     </div>
 
     <div class="max-w-4xl mx-auto space-y-5 pb-12">
         <header class="text-center py-2">
-            <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter">
-                GTT Rankings
-            </h1>
+            <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter">GTT Rankings</h1>
             <div class="flex justify-center items-center mt-1">
                 <span id="status-dot" class="sync-indicator"></span>
-                <p id="status-text" class="text-slate-600 text-[10px] font-bold tracking-[0.3em] uppercase">Cloud Connecting...</p>
+                <p id="status-text" class="text-slate-600 text-[10px] font-bold tracking-[0.3em] uppercase">Connecting...</p>
             </div>
         </header>
 
         <section class="glass p-5 rounded-[2rem] border border-slate-800 shadow-2xl space-y-5">
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-2 font-bold text-center">Match Format</label>
-                    <select id="match-format" onchange="syncSettings()" class="w-full bg-slate-800 p-3 rounded-xl outline-none border border-slate-700 font-bold text-center text-sm">
-                        <option value="1">1 Set Win</option>
-                        <option value="2">2 Sets Win</option>
-                        <option value="3">3 Sets Win</option>
-                        <option value="4">4 Sets Win</option>
-                        <option value="5">5 Sets Win</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-2 font-bold text-center">G1 Server</label>
-                    <select id="manual-server" onchange="initGameServer()" class="w-full bg-slate-800 p-3 rounded-xl outline-none border border-slate-700 font-bold text-yellow-500 text-center text-sm">
-                        <option value="1">P1 Start</option>
-                        <option value="2">P2 Start</option>
-                    </select>
-                </div>
+                <select id="match-format" onchange="syncSettings()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-sm outline-none">
+                    <option value="1">1 Set Win</option>
+                    <option value="2">2 Sets Win</option>
+                    <option value="3">3 Sets Win</option>
+                    <option value="5">5 Sets Win</option>
+                </select>
+                <select id="manual-server" onchange="initGameServer()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-yellow-500 text-sm outline-none">
+                    <option value="1">P1 Start</option>
+                    <option value="2">P2 Start</option>
+                </select>
             </div>
 
             <div class="space-y-3">
@@ -71,11 +62,10 @@
                     <div class="text-slate-700 font-black italic">VS</div>
                     <select id="p2-select" onchange="syncMatchSelection()" class="w-[44%] bg-transparent py-2 outline-none text-red-400 font-black text-center text-sm appearance-none cursor-pointer"></select>
                 </div>
-                
                 <div class="flex gap-2">
                     <input id="new-name" type="text" placeholder="New Player..." class="flex-1 bg-slate-900/50 p-3 rounded-xl border border-slate-800 outline-none text-center text-sm">
-                    <button onclick="addPlayer()" class="bg-yellow-500 text-black px-5 font-black rounded-xl active:scale-95 transition text-xs">ADD</button>
-                    <button onclick="deleteSelectedPlayer()" class="bg-red-900/50 text-red-500 px-5 font-black rounded-xl active:scale-95 transition text-xs border border-red-900/50">DEL</button>
+                    <button onclick="addPlayer()" class="bg-yellow-500 text-black px-5 font-black rounded-xl text-xs active:scale-95 transition">ADD</button>
+                    <button onclick="deleteSelectedPlayer()" class="bg-red-900/50 text-red-500 px-5 font-black rounded-xl text-xs border border-red-900/50 active:scale-95 transition">DEL</button>
                 </div>
             </div>
         </section>
@@ -83,17 +73,16 @@
         <main class="grid grid-cols-2 gap-6">
             <div id="card-1" class="glass p-6 rounded-[3rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
-                    <div id="name-1" class="player-name-text text-sm font-black text-blue-400 mb-1 truncate uppercase tracking-widest">---</div>
-                    <div id="games-1" class="player-sets-text text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-[0.2em]">Sets: 0</div>
+                    <div id="name-1" class="player-name-text text-sm font-black text-blue-400 mb-1 truncate uppercase">---</div>
+                    <div id="games-1" class="player-sets-text text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase">Sets: 0</div>
                 </div>
                 <div id="score-1" class="score-text text-[8rem] leading-none font-black mb-6">0</div>
                 <button onclick="changeScore(1, 1)" class="w-full bg-blue-600 h-28 rounded-[2rem] text-6xl font-black shadow-xl active:bg-blue-500 transition">＋</button>
             </div>
-
             <div id="card-2" class="glass p-6 rounded-[3rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
-                    <div id="name-2" class="player-name-text text-sm font-black text-red-400 mb-1 truncate uppercase tracking-widest">---</div>
-                    <div id="games-2" class="player-sets-text text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-[0.2em]">Sets: 0</div>
+                    <div id="name-2" class="player-name-text text-sm font-black text-red-400 mb-1 truncate uppercase">---</div>
+                    <div id="games-2" class="player-sets-text text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase">Sets: 0</div>
                 </div>
                 <div id="score-2" class="score-text text-[8rem] leading-none font-black mb-6">0</div>
                 <button onclick="changeScore(2, 1)" class="w-full bg-red-600 h-28 rounded-[2rem] text-6xl font-black shadow-xl active:bg-red-500 transition">＋</button>
@@ -101,13 +90,24 @@
         </main>
 
         <div class="flex gap-4">
-            <button onclick="undo()" class="flex-1 bg-slate-900 py-5 rounded-2xl font-black text-slate-500 text-xs uppercase tracking-widest border border-slate-800 active:text-white">Return (Max 2)</button>
-            <button onclick="resetMatch()" class="flex-1 bg-slate-900 py-5 rounded-2xl font-black text-slate-500 text-xs uppercase tracking-widest border border-slate-800 active:text-red-500">Reset</button>
+            <button onclick="undo()" class="flex-1 bg-slate-900 py-5 rounded-2xl font-black text-slate-500 text-xs border border-slate-800 active:text-white transition">Return</button>
+            <button onclick="resetMatch()" class="flex-1 bg-slate-900 py-5 rounded-2xl font-black text-slate-500 text-xs border border-slate-800 active:text-red-500 transition">Reset</button>
         </div>
+
+        <section class="space-y-3">
+            <h2 class="text-xs font-black uppercase text-yellow-500 px-2 tracking-widest flex items-center">
+                <span class="mr-2">🏆</span> Top 10 Leaderboard
+            </h2>
+            <div id="leaderboard" class="glass rounded-[1.5rem] border border-slate-800 overflow-hidden divide-y divide-slate-800/50"></div>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xs font-black uppercase text-slate-600 px-2 tracking-widest">Recent 5 Matches</h2>
+            <div id="history-list" class="space-y-2"></div>
+        </section>
     </div>
 
     <script>
-        // 已自動填入你的專屬 Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
@@ -124,20 +124,28 @@
         const dataRef = db.ref('gtt_live_data');
 
         let players = [{ name: 'Player 1', elo: 1200 }, { name: 'Player 2', elo: 1200 }];
-        let matchHistory = [];
+        let matchRecords = [];
         let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: 0, p2Index: 1 };
 
-        function cloudPush() { dataRef.set({ players, matchHistory, gameState }); }
+        function cloudPush() { dataRef.set({ players, matchRecords, gameState }); }
 
         dataRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                players = data.players || players;
-                matchHistory = data.matchHistory || matchHistory;
-                if (data.gameState) gameState = data.gameState;
-                updateUI(); updatePlayerOptions();
+                if (data.players) players = data.players;
+                if (data.matchRecords) matchRecords = data.matchRecords;
+                if (data.gameState) {
+                    gameState = data.gameState;
+                    if (!gameState.history) gameState.history = [];
+                }
+                updateUI();
+                updatePlayerOptions();
+                renderHistory();
+                renderLeaderboard();
                 document.getElementById('status-dot').classList.add('online');
                 document.getElementById('status-text').innerText = "Live Synced";
+            } else {
+                cloudPush();
             }
         });
 
@@ -145,51 +153,75 @@
             gameState.history.push(JSON.stringify({ s1: gameState.p1Score, s2: gameState.p2Score, g1: gameState.p1Games, g2: gameState.p2Games, fs: gameState.gameFirstServer }));
             if (gameState.history.length > 2) gameState.history.shift();
             p === 1 ? gameState.p1Score += v : gameState.p2Score += v;
-            const d = Math.abs(gameState.p1Score - gameState.p2Score);
-            if ((gameState.p1Score >= 11 || gameState.p2Score >= 11) && d >= 2) {
+            
+            const diff = Math.abs(gameState.p1Score - gameState.p2Score);
+            if ((gameState.p1Score >= 11 || gameState.p2Score >= 11) && diff >= 2) {
                 gameState.p1Score > gameState.p2Score ? gameState.p1Games++ : gameState.p2Games++;
                 gameState.p1Score = 0; gameState.p2Score = 0;
                 gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
-                if (gameState.p1Games == gameState.matchFormat || gameState.p2Games == gameState.matchFormat) { recordMatch(); return; }
+                
+                if (gameState.p1Games >= gameState.matchFormat || gameState.p2Games >= gameState.matchFormat) {
+                    saveMatchResult();
+                    return;
+                }
             }
             cloudPush();
         }
 
-        function recordMatch() {
+        function saveMatchResult() {
             const p1Won = gameState.p1Games > gameState.p2Games;
-            const winnerName = p1Won ? players[gameState.p1Index].name : players[gameState.p2Index].name;
+            const p1 = players[gameState.p1Index];
+            const p2 = players[gameState.p2Index];
+            const winnerName = p1Won ? p1.name : p2.name;
+
+            // 計算積分變動
+            const exp1 = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
+            const gain = Math.round(32 * ((p1Won ? 1 : 0) - exp1));
+            p1.elo += gain; 
+            p2.elo -= gain;
+
+            // 存入歷史
+            matchRecords.unshift({
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                p1: p1.name,
+                p2: p2.name,
+                score: `${gameState.p1Games}-${gameState.p2Games}`
+            });
+            if (matchRecords.length > 5) matchRecords.pop();
+
             document.getElementById('winner-name').innerText = winnerName;
             document.getElementById('custom-alert').style.display = 'block';
-            
-            const p1 = players[gameState.p1Index], p2 = players[gameState.p2Index];
-            const exp = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
-            const change = Math.round(32 * ((p1Won ? 1 : 0) - exp));
-            p1.elo += change; p2.elo -= change;
 
-            gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = [];
+            gameState.p1Score = 0; gameState.p2Score = 0; 
+            gameState.p1Games = 0; gameState.p2Games = 0; 
+            gameState.history = [];
             cloudPush();
         }
 
-        function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
-        function deleteSelectedPlayer() {
-            const index = document.getElementById('p1-select').selectedIndex;
-            if (players.length <= 2) { alert("Min 2 players required."); return; }
-            if (confirm(`Delete ${players[index].name}?`)) {
-                players.splice(index, 1);
-                gameState.p1Index = 0; gameState.p2Index = 1;
-                cloudPush();
-            }
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboard');
+            const sorted = [...players].sort((a, b) => b.elo - a.elo).slice(0, 10);
+            container.innerHTML = sorted.map((p, i) => `
+                <div class="flex items-center justify-between p-4 ${i === 0 ? 'bg-yellow-500/10' : ''}">
+                    <div class="flex items-center gap-4">
+                        <span class="w-6 text-center font-black ${i < 3 ? 'text-yellow-500' : 'text-slate-600'}">${i + 1}</span>
+                        <span class="font-bold uppercase tracking-tight text-sm">${p.name}</span>
+                    </div>
+                    <div class="font-mono font-black text-yellow-500">${p.elo}</div>
+                </div>
+            `).join('');
         }
-        function undo() { if (gameState.history.length > 0) { const last = JSON.parse(gameState.history.pop()); gameState.p1Score = last.s1; gameState.p2Score = last.s2; gameState.p1Games = last.g1; gameState.p2Games = last.g2; gameState.gameFirstServer = last.fs; cloudPush(); } }
-        function resetMatch() { if(confirm("Reset current scores?")){ gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = []; cloudPush(); } }
-        function updatePlayerOptions() {
-            const options = players.map(p => `<option value="${p.name}">${p.name} [${p.elo}]</option>`).join('');
-            const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
-            if (s1.options.length !== players.length) { 
-                s1.innerHTML = options; s2.innerHTML = options; 
-                s1.selectedIndex = gameState.p1Index; s2.selectedIndex = gameState.p2Index; 
-            }
+
+        function renderHistory() {
+            const container = document.getElementById('history-list');
+            container.innerHTML = matchRecords.map(r => `
+                <div class="glass p-3 rounded-xl border border-slate-800 flex justify-between items-center text-[10px]">
+                    <div class="font-bold"><span class="text-blue-400">${r.p1}</span> vs <span class="text-red-400">${r.p2}</span></div>
+                    <div class="font-black text-yellow-500">${r.score} <span class="text-slate-600 font-normal ml-2">${r.time}</span></div>
+                </div>
+            `).join('');
         }
+
         function updateUI() {
             document.getElementById('score-1').innerText = gameState.p1Score;
             document.getElementById('score-2').innerText = gameState.p2Score;
@@ -198,16 +230,31 @@
             document.getElementById('name-1').innerText = players[gameState.p1Index]?.name || "---";
             document.getElementById('name-2').innerText = players[gameState.p2Index]?.name || "---";
             document.getElementById('match-format').value = gameState.matchFormat;
+            
             const total = gameState.p1Score + gameState.p2Score;
             const turn = (gameState.p1Score >= 10 && gameState.p2Score >= 10) ? (total % 2 === 0) : (Math.floor(total / 2) % 2 === 0);
             const p1Serves = (gameState.gameFirstServer === 1) ? turn : !turn;
             document.getElementById('card-1').classList.toggle('active-side', p1Serves);
             document.getElementById('card-2').classList.toggle('active-side', !p1Serves);
         }
+
+        function updatePlayerOptions() {
+            const options = players.map(p => `<option value="${p.name}">${p.name} [${p.elo}]</option>`).join('');
+            const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
+            if (s1.options.length !== players.length) {
+                s1.innerHTML = options; s2.innerHTML = options;
+                s1.selectedIndex = gameState.p1Index; s2.selectedIndex = gameState.p2Index;
+            }
+        }
+
+        function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
+        function undo() { if (gameState.history && gameState.history.length > 0) { const last = JSON.parse(gameState.history.pop()); gameState.p1Score = last.s1; gameState.p2Score = last.s2; gameState.p1Games = last.g1; gameState.p2Games = last.g2; gameState.gameFirstServer = last.fs; cloudPush(); } }
+        function resetMatch() { if(confirm("Reset scores?")){ gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = []; cloudPush(); } }
         function syncSettings() { gameState.matchFormat = parseInt(document.getElementById('match-format').value); cloudPush(); }
         function initGameServer() { gameState.gameFirstServer = parseInt(document.getElementById('manual-server').value); cloudPush(); }
         function syncMatchSelection() { gameState.p1Index = document.getElementById('p1-select').selectedIndex; gameState.p2Index = document.getElementById('p2-select').selectedIndex; cloudPush(); }
         function addPlayer() { const n = document.getElementById('new-name').value.trim(); if(n){ players.push({name:n, elo:1200}); document.getElementById('new-name').value=''; cloudPush(); } }
+        function deleteSelectedPlayer() { if(players.length > 2 && confirm("Delete selected player?")){ players.splice(document.getElementById('p1-select').selectedIndex, 1); gameState.p1Index=0; gameState.p2Index=1; cloudPush(); } }
     </script>
 </body>
 </html>
