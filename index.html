@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GTT Rankings</title>
+    <title>GTT Rankings - Unified Hub</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,27 +12,14 @@
         .active-side { border: 6px solid #fbbf24; transform: scale(1.02); box-shadow: 0 0 30px rgba(251, 191, 36, 0.4); }
         .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
         body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
-        .sync-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
-        .online { background: #10b981; box-shadow: 0 0 8px #10b981; }
+        .sync-indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .online { background: #10b981; box-shadow: 0 0 10px #10b981; }
         #custom-alert { display: none; }
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
         .admin-only { display: none; }
-        
-        /* 橫向 Radio 佈局 */
-        .radio-group { @apply flex items-center bg-slate-900/50 rounded-xl border border-slate-800 p-1; }
-        .radio-item { @apply flex flex-col items-center justify-center py-1 cursor-pointer transition-all gap-1 px-3; }
-        .divider { @apply w-[1px] h-8 bg-slate-800 mx-1; }
-        
-        /* Radio Button 🔘 樣式 */
-        .radio-btn { @apply w-4 h-4 rounded-full border border-blue-500/50 flex items-center justify-center transition-all; }
-        .radio-inner { @apply w-2.5 h-2.5 rounded-full bg-blue-500 scale-0 transition-transform; }
-        
-        .radio-item.active .radio-btn { @apply border-blue-500 ring-4 ring-blue-500/10; }
-        .radio-item.active .radio-inner { @apply scale-100; }
-        .radio-item.active span { @apply text-blue-400 font-black; }
-        .radio-item span { @apply text-[9px] font-bold text-slate-500 uppercase tracking-tighter; }
-
+        .table-btn { @apply flex-1 py-4 text-[12px] font-black rounded-xl transition-all border border-slate-800 bg-slate-900 text-slate-500; }
+        .table-btn.active { @apply bg-yellow-500 text-black border-yellow-500 shadow-lg shadow-yellow-500/20; }
         @media (orientation: landscape) { .player-name-text { font-size: 1.5rem !important; } .score-text { font-size: 10rem !important; } }
     </style>
 </head>
@@ -42,39 +29,27 @@
         <div class="text-5xl mb-4">🏆</div>
         <h2 class="text-2xl font-black uppercase mb-2">Match Finished</h2>
         <p id="winner-info" class="text-yellow-500 font-bold mb-6 italic text-lg"></p>
-        <button onclick="closeAlert()" class="w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase transition active:scale-95">Confirm</button>
+        <button onclick="closeAlert()" class="w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase active:scale-95 transition">Confirm</button>
     </div>
 
-    <div class="max-w-4xl mx-auto space-y-6 pb-12">
-        <header class="text-center py-2">
-            <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter italic">GTT Rankings</h1>
+    <div class="max-w-4xl mx-auto space-y-5 pb-12">
+        <header class="text-center py-4">
+            <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter italic">GTT Rankings</h1>
             
-            <div class="flex items-center justify-between mt-6 bg-slate-900/30 p-2 rounded-2xl border border-white/5 gap-2">
-                <div class="radio-group flex-1">
-                    <div class="radio-item" onclick="switchTable(1)" id="btn-t1">
-                        <div class="radio-btn"><div class="radio-inner"></div></div>
-                        <span>T1</span>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="radio-item" onclick="switchTable(2)" id="btn-t2">
-                        <div class="radio-btn"><div class="radio-inner"></div></div>
-                        <span>T2</span>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="radio-item" onclick="switchTable(3)" id="btn-t3">
-                        <div class="radio-btn"><div class="radio-inner"></div></div>
-                        <span>T3</span>
-                    </div>
-                </div>
-
-                <div id="mode-badge" class="whitespace-nowrap px-4 py-3 rounded-xl bg-blue-500/10 text-blue-400 text-[10px] font-black tracking-widest border border-blue-500/20 uppercase">
-                    SANCIPA MODE
-                </div>
+            <div class="flex gap-2 mt-6 max-w-md mx-auto">
+                <button onclick="switchTable(1)" id="btn-t1" class="table-btn">TABLE 1</button>
+                <button onclick="switchTable(2)" id="btn-t2" class="table-btn">TABLE 2</button>
+                <button onclick="switchTable(3)" id="btn-t3" class="table-btn">TABLE 3</button>
             </div>
 
-            <div class="flex justify-center items-center mt-3 gap-2">
-                <span id="status-dot" class="sync-indicator"></span>
-                <span id="status-text" class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Connecting...</span>
+            <div class="flex flex-col items-center justify-center mt-6 space-y-2">
+                <div class="flex items-center">
+                    <span id="status-dot" class="sync-indicator"></span>
+                    <span id="status-text" class="text-lg font-black text-slate-400 uppercase tracking-[0.2em]">Connecting...</span>
+                </div>
+                <div id="mode-badge" class="px-6 py-2 rounded-full bg-blue-500/20 text-blue-400 text-sm font-black tracking-[0.3em] border border-blue-500/30 uppercase">
+                    SANCIPA MODE
+                </div>
             </div>
         </header>
 
@@ -92,12 +67,12 @@
             </div>
             <div class="space-y-3">
                 <div class="flex items-center justify-between bg-slate-900/40 p-2 rounded-2xl border border-white/5">
-                    <select id="p1-select" onchange="syncMatchSelection()" class="w-[44%] bg-transparent py-2 outline-none text-blue-400 font-black text-center text-sm appearance-none"></select>
-                    <div class="text-slate-700 font-black italic text-xs">VS</div>
-                    <select id="p2-select" onchange="syncMatchSelection()" class="w-[44%] bg-transparent py-2 outline-none text-red-400 font-black text-center text-sm appearance-none"></select>
+                    <select id="p1-select" onchange="syncMatchSelection()" class="w-[44%] bg-transparent py-2 outline-none text-blue-400 font-black text-center text-sm"></select>
+                    <div class="text-slate-700 font-black italic">VS</div>
+                    <select id="p2-select" onchange="syncMatchSelection()" class="w-[44%] bg-transparent py-2 outline-none text-red-400 font-black text-center text-sm"></select>
                 </div>
                 <div class="flex gap-2">
-                    <input id="new-name" type="text" placeholder="Add Player..." class="flex-1 bg-slate-900/50 p-3 rounded-xl border border-slate-800 outline-none text-center text-sm">
+                    <input id="new-name" type="text" placeholder="New Name..." class="flex-1 bg-slate-900/50 p-3 rounded-xl border border-slate-800 outline-none text-center text-sm">
                     <button onclick="addPlayer()" class="bg-yellow-500 text-black px-5 font-black rounded-xl text-xs">ADD</button>
                     <button onclick="deleteSelectedPlayer()" class="admin-only bg-red-900/50 text-red-500 px-5 font-black rounded-xl text-xs border border-red-900/50">DEL</button>
                 </div>
@@ -108,7 +83,7 @@
             <div id="card-1" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
                     <div id="name-1" class="player-name-text text-sm font-black text-blue-400 mb-1 truncate uppercase">---</div>
-                    <div id="games-1" class="text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase">Sets: 0</div>
+                    <div id="games-1" class="text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">Sets: 0</div>
                 </div>
                 <div id="score-1" class="score-text text-[8rem] leading-none font-black mb-4">0</div>
                 <button onclick="changeScore(1, 1)" class="w-full bg-blue-600 py-8 rounded-[1.5rem] text-5xl font-black shadow-xl active:bg-blue-500 transition">＋</button>
@@ -116,7 +91,7 @@
             <div id="card-2" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
                     <div id="name-2" class="player-name-text text-sm font-black text-red-400 mb-1 truncate uppercase">---</div>
-                    <div id="games-2" class="text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase">Sets: 0</div>
+                    <div id="games-2" class="text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">Sets: 0</div>
                 </div>
                 <div id="score-2" class="score-text text-[8rem] leading-none font-black mb-4">0</div>
                 <button onclick="changeScore(2, 1)" class="w-full bg-red-600 py-8 rounded-[1.5rem] text-5xl font-black shadow-xl active:bg-red-500 transition">＋</button>
@@ -129,19 +104,18 @@
         </div>
 
         <section class="space-y-3">
-            <h2 class="text-xs font-black uppercase text-yellow-500 px-2 tracking-widest">🏆 Leaderboard</h2>
+            <h2 class="text-xs font-black uppercase text-yellow-500 px-2 tracking-widest flex items-center"><span class="mr-2">🏆</span> Ranking Leaderboard</h2>
             <div id="leaderboard" class="glass rounded-[1.5rem] border border-slate-800 overflow-hidden divide-y divide-slate-800/50"></div>
         </section>
 
         <section class="space-y-3">
-            <h2 class="text-xs font-black uppercase text-slate-600 px-2 tracking-widest">🕰️ Global History</h2>
+            <h2 class="text-xs font-black uppercase text-slate-600 px-2 tracking-widest">Global History (All Tables)</h2>
             <div id="history-list" class="space-y-2"></div>
         </section>
     </div>
 
     <script>
-        // 已填入你的專屬 Firebase 設定
-        const firebaseConfig = {
+        const firebaseConfig = { 
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
             databaseURL: "https://gtt-rankings-default-rtdb.firebaseio.com",
@@ -151,7 +125,7 @@
             appId: "1:96701388869:web:f66a13c8cffe70c0c4eb2c",
             measurementId: "G-MJWRM5ZV8K"
         };
-
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const urlParams = new URLSearchParams(window.location.search);
@@ -165,8 +139,8 @@
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             const badge = document.getElementById('mode-badge');
-            badge.innerText = "RANKING MODE"; badge.classList.replace('bg-blue-500/10', 'bg-red-500/10'); badge.classList.replace('text-blue-400', 'text-red-500');
-            badge.classList.add('border-red-500/20');
+            badge.innerText = "RANKING MODE"; badge.classList.replace('bg-blue-500/20', 'bg-red-500/20'); badge.classList.replace('text-blue-400', 'text-red-500');
+            badge.classList.add('border-red-500/30');
         }
 
         const playersRef = db.ref('gtt_unified/players');
@@ -192,7 +166,7 @@
                 }
                 updateUI();
                 document.getElementById('status-dot').classList.add('online');
-                document.getElementById('status-text').innerText = `T${currentTable} LIVE`;
+                document.getElementById('status-text').innerText = `Table ${currentTable} Live`;
             });
             updateTableUI();
         }
@@ -201,17 +175,14 @@
             gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [], isGameOver: false };
         }
 
-        function updateTableUI() {
-            [1, 2, 3].forEach(n => document.getElementById(`btn-t${n}`).classList.toggle('active', n === currentTable));
-        }
-
+        function updateTableUI() { [1, 2, 3].forEach(n => document.getElementById(`btn-t${n}`).classList.toggle('active', n === currentTable)); }
         function pushTable() { tableRef.set(gameState); }
         function pushPlayers() { playersRef.set(players); }
         function pushHistory() { historyRef.set(globalHistory); }
 
         function changeScore(p, v) {
-            if(gameState.isGameOver) return;
-            if(gameState.p1Index === -1 || gameState.p2Index === -1) { alert("Select Players!"); return; }
+            if (gameState.isGameOver) return;
+            if (gameState.p1Index === -1 || gameState.p2Index === -1) { alert("Please Select Players First!"); return; }
             gameState.history.push(JSON.stringify({ s1: gameState.p1Score, s2: gameState.p2Score, g1: gameState.p1Games, g2: gameState.p2Games, fs: gameState.gameFirstServer, ss: [...(gameState.setScores || [])] }));
             if (gameState.history.length > 2) gameState.history.shift();
             p === 1 ? gameState.p1Score += v : gameState.p2Score += v;
@@ -266,17 +237,15 @@
             const container = document.getElementById('history-list');
             container.innerHTML = globalHistory.map(r => `
                 <div class="glass p-4 rounded-2xl border border-slate-800 space-y-1">
-                    <div class="flex justify-between items-center text-[9px] font-black uppercase">
+                    <div class="flex justify-between items-center text-[10px] font-black uppercase">
                         <span class="${r.mode === '[RANKING]' ? 'text-red-500' : 'text-blue-400'}">${r.mode} | ${r.table}</span>
                         <span class="text-slate-600">${r.time}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <div class="text-xs font-bold uppercase"><span class="text-blue-400">${r.p1}</span> vs <span class="text-red-400">${r.p2}</span></div>
-                        <div class="text-sm font-black text-yellow-500">${r.score}</div>
+                        <div class="text-sm font-bold uppercase"><span class="text-blue-400">${r.p1}</span> <span class="text-slate-700 text-[10px]">vs</span> <span class="text-red-400">${r.p2}</span></div>
+                        <div class="text-lg font-black text-yellow-500">${r.score}</div>
                     </div>
-                    <div class="text-[9px] text-slate-500 italic mt-1 font-mono">
-                        Sets: (${r.sets || 'N/A'})
-                    </div>
+                    <div class="text-[10px] text-slate-500 font-mono italic">Sets: ${r.sets}</div>
                 </div>
             `).join('');
         }
@@ -285,12 +254,12 @@
             const container = document.getElementById('leaderboard');
             const sorted = [...players].sort((a, b) => b.elo - a.elo).slice(0, 10);
             container.innerHTML = sorted.map((p, i) => `
-                <div class="flex items-center justify-between p-4 ${i === 0 ? 'bg-yellow-500/10' : ''}">
+                <div class="flex items-center justify-between p-5 ${i === 0 ? 'bg-yellow-500/10' : ''}">
                     <div class="flex items-center gap-4">
-                        <span class="w-6 text-center font-black ${i < 3 ? 'text-yellow-500' : 'text-slate-600'}">${i + 1}</span>
-                        <span class="font-bold uppercase text-xs">${p.name}</span>
+                        <span class="w-8 text-center font-black text-lg ${i < 3 ? 'text-yellow-500' : 'text-slate-600'}">${i + 1}</span>
+                        <span class="font-black uppercase text-sm">${p.name}</span>
                     </div>
-                    <div class="font-mono font-black text-yellow-500 text-sm">${p.elo}</div>
+                    <div class="font-mono font-black text-yellow-500 text-lg">${p.elo}</div>
                 </div>
             `).join('');
         }
@@ -314,14 +283,28 @@
 
         function updatePlayerOptions() {
             const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
-            let options = `<option value="-1">-- PLAYER --</option>`;
+            let options = `<option value="-1">-- SELECT PLAYER --</option>`;
             options += players.map((p, i) => `<option value="${i}">${p.name} [${p.elo}]</option>`).join('');
             s1.innerHTML = options; s2.innerHTML = options;
             s1.value = gameState.p1Index; s2.value = gameState.p2Index;
         }
 
-        function undo() { if (gameState.isGameOver) return; if (gameState.history?.length > 0) { const last = JSON.parse(gameState.history.pop()); Object.assign(gameState, { p1Score: last.s1, p2Score: last.s2, p1Games: last.g1, p2Games: last.g2, gameFirstServer: last.fs, setScores: last.ss || [] }); pushTable(); } }
-        function resetMatch() { if(confirm("Reset Match?")){ Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1, isGameOver: false }); pushTable(); } }
+        function undo() { 
+            if (gameState.isGameOver) return;
+            if (gameState.history?.length > 0) { 
+                const last = JSON.parse(gameState.history.pop()); 
+                Object.assign(gameState, { p1Score: last.s1, p2Score: last.s2, p1Games: last.g1, p2Games: last.g2, gameFirstServer: last.fs, setScores: last.ss || [] }); 
+                pushTable(); 
+            } 
+        }
+        
+        function resetMatch() { 
+            if(confirm("Reset Current Match?")){ 
+                Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1, isGameOver: false }); 
+                pushTable(); 
+            } 
+        }
+
         function syncSettings() { gameState.matchFormat = parseInt(document.getElementById('match-format').value); pushTable(); }
         function initGameServer() { gameState.gameFirstServer = parseInt(document.getElementById('manual-server').value); pushTable(); }
         function syncMatchSelection() { gameState.p1Index = parseInt(document.getElementById('p1-select').value); gameState.p2Index = parseInt(document.getElementById('p2-select').value); pushTable(); }
