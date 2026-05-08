@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GTT Rankings - Official Hub</title>
+    <title>GTT Rankings - Unified Hub</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,13 +12,13 @@
         .active-side { border: 6px solid #fbbf24; transform: scale(1.02); box-shadow: 0 0 30px rgba(251, 191, 36, 0.4); }
         .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
         body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
-        .sync-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
-        .online { background: #10b981; box-shadow: 0 0 8px #10b981; }
+        .sync-indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .online { background: #10b981; box-shadow: 0 0 10px #10b981; }
         #custom-alert { display: none; }
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
         .admin-only { display: none; }
-        .table-btn { @apply flex-1 py-3 text-[10px] font-black rounded-xl transition-all border border-slate-800 bg-slate-900 text-slate-500; }
+        .table-btn { @apply flex-1 py-4 text-[12px] font-black rounded-xl transition-all border border-slate-800 bg-slate-900 text-slate-500; }
         .table-btn.active { @apply bg-yellow-500 text-black border-yellow-500 shadow-lg shadow-yellow-500/20; }
         @media (orientation: landscape) { .player-name-text { font-size: 1.5rem !important; } .score-text { font-size: 10rem !important; } }
     </style>
@@ -33,17 +33,23 @@
     </div>
 
     <div class="max-w-4xl mx-auto space-y-5 pb-12">
-        <header class="text-center py-2">
-            <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter italic">GTT Rankings</h1>
-            <div class="flex gap-2 mt-4 max-w-sm mx-auto">
+        <header class="text-center py-4">
+            <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter italic">GTT Rankings</h1>
+            
+            <div class="flex gap-2 mt-6 max-w-md mx-auto">
                 <button onclick="switchTable(1)" id="btn-t1" class="table-btn">TABLE 1</button>
                 <button onclick="switchTable(2)" id="btn-t2" class="table-btn">TABLE 2</button>
                 <button onclick="switchTable(3)" id="btn-t3" class="table-btn">TABLE 3</button>
             </div>
-            <div class="flex justify-center items-center mt-3 text-[10px] font-bold text-slate-600 uppercase">
-                <span id="status-dot" class="sync-indicator"></span>
-                <span id="status-text">Connecting...</span>
-                <span id="mode-badge" class="ml-2 bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded tracking-widest">SANCIPA MODE</span>
+
+            <div class="flex flex-col items-center justify-center mt-6 space-y-2">
+                <div class="flex items-center">
+                    <span id="status-dot" class="sync-indicator"></span>
+                    <span id="status-text" class="text-lg font-black text-slate-400 uppercase tracking-[0.2em]">Connecting...</span>
+                </div>
+                <div id="mode-badge" class="px-6 py-2 rounded-full bg-blue-500/20 text-blue-400 text-sm font-black tracking-[0.3em] border border-blue-500/30 uppercase">
+                    SANCIPA MODE
+                </div>
             </div>
         </header>
 
@@ -109,7 +115,6 @@
     </div>
 
     <script>
-        // --- Firebase 配置已填入 ---
         const firebaseConfig = { 
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
@@ -120,7 +125,7 @@
             appId: "1:96701388869:web:f66a13c8cffe70c0c4eb2c",
             measurementId: "G-MJWRM5ZV8K"
         };
-
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const urlParams = new URLSearchParams(window.location.search);
@@ -129,12 +134,13 @@
         let players = []; 
         let globalHistory = [];
         let currentTable = parseInt(localStorage.getItem('gtt_active_table')) || 1;
-        let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [] };
+        let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [], isGameOver: false };
 
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             const badge = document.getElementById('mode-badge');
             badge.innerText = "RANKING MODE"; badge.classList.replace('bg-blue-500/20', 'bg-red-500/20'); badge.classList.replace('text-blue-400', 'text-red-500');
+            badge.classList.add('border-red-500/30');
         }
 
         const playersRef = db.ref('gtt_unified/players');
@@ -160,13 +166,13 @@
                 }
                 updateUI();
                 document.getElementById('status-dot').classList.add('online');
-                document.getElementById('status-text').innerText = `T${currentTable} LIVE`;
+                document.getElementById('status-text').innerText = `Table ${currentTable} Live`;
             });
             updateTableUI();
         }
 
         function initLocalState() {
-            gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [] };
+            gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [], isGameOver: false };
         }
 
         function updateTableUI() { [1, 2, 3].forEach(n => document.getElementById(`btn-t${n}`).classList.toggle('active', n === currentTable)); }
@@ -175,7 +181,8 @@
         function pushHistory() { historyRef.set(globalHistory); }
 
         function changeScore(p, v) {
-            if(gameState.p1Index === -1 || gameState.p2Index === -1) { alert("Please Select Players First!"); return; }
+            if (gameState.isGameOver) return;
+            if (gameState.p1Index === -1 || gameState.p2Index === -1) { alert("Please Select Players First!"); return; }
             gameState.history.push(JSON.stringify({ s1: gameState.p1Score, s2: gameState.p2Score, g1: gameState.p1Games, g2: gameState.p2Games, fs: gameState.gameFirstServer, ss: [...(gameState.setScores || [])] }));
             if (gameState.history.length > 2) gameState.history.shift();
             p === 1 ? gameState.p1Score += v : gameState.p2Score += v;
@@ -185,7 +192,11 @@
                 gameState.p1Score > gameState.p2Score ? gameState.p1Games++ : gameState.p2Games++;
                 gameState.p1Score = 0; gameState.p2Score = 0;
                 gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
-                if (gameState.p1Games >= gameState.matchFormat || gameState.p2Games >= gameState.matchFormat) { saveMatchResult(); return; }
+                if (gameState.p1Games >= gameState.matchFormat || gameState.p2Games >= gameState.matchFormat) { 
+                    gameState.isGameOver = true;
+                    saveMatchResult(); 
+                    return; 
+                }
             }
             pushTable();
         }
@@ -193,7 +204,6 @@
         function saveMatchResult() {
             const p1Won = gameState.p1Games > gameState.p2Games;
             const p1 = players[gameState.p1Index], p2 = players[gameState.p2Index];
-            
             if (isAdmin) {
                 const exp = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
                 const gain = Math.round(32 * ((p1Won ? 1 : 0) - exp));
@@ -203,7 +213,6 @@
             } else {
                 document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} WINS!`;
             }
-
             globalHistory.unshift({
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 p1: p1.name, p2: p2.name,
@@ -214,13 +223,13 @@
             });
             if (globalHistory.length > 10) globalHistory.pop();
             pushHistory();
-
             document.getElementById('custom-alert').style.display = 'block';
+            pushTable();
         }
 
         function closeAlert() { 
             document.getElementById('custom-alert').style.display = 'none'; 
-            Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1 });
+            Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1, isGameOver: false });
             pushTable(); 
         }
 
@@ -228,15 +237,15 @@
             const container = document.getElementById('history-list');
             container.innerHTML = globalHistory.map(r => `
                 <div class="glass p-4 rounded-2xl border border-slate-800 space-y-1">
-                    <div class="flex justify-between items-center text-[9px] font-black uppercase">
+                    <div class="flex justify-between items-center text-[10px] font-black uppercase">
                         <span class="${r.mode === '[RANKING]' ? 'text-red-500' : 'text-blue-400'}">${r.mode} | ${r.table}</span>
                         <span class="text-slate-600">${r.time}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <div class="text-xs font-bold uppercase"><span class="text-blue-400">${r.p1}</span> <span class="text-slate-700 text-[10px]">vs</span> <span class="text-red-400">${r.p2}</span></div>
-                        <div class="text-sm font-black text-yellow-500">${r.score}</div>
+                        <div class="text-sm font-bold uppercase"><span class="text-blue-400">${r.p1}</span> <span class="text-slate-700 text-[10px]">vs</span> <span class="text-red-400">${r.p2}</span></div>
+                        <div class="text-lg font-black text-yellow-500">${r.score}</div>
                     </div>
-                    <div class="text-[9px] text-slate-500 font-mono italic">Sets: ${r.sets}</div>
+                    <div class="text-[10px] text-slate-500 font-mono italic">Sets: ${r.sets}</div>
                 </div>
             `).join('');
         }
@@ -245,12 +254,12 @@
             const container = document.getElementById('leaderboard');
             const sorted = [...players].sort((a, b) => b.elo - a.elo).slice(0, 10);
             container.innerHTML = sorted.map((p, i) => `
-                <div class="flex items-center justify-between p-4 ${i === 0 ? 'bg-yellow-500/10' : ''}">
+                <div class="flex items-center justify-between p-5 ${i === 0 ? 'bg-yellow-500/10' : ''}">
                     <div class="flex items-center gap-4">
-                        <span class="w-6 text-center font-black ${i < 3 ? 'text-yellow-500' : 'text-slate-600'}">${i + 1}</span>
-                        <span class="font-bold uppercase text-xs">${p.name}</span>
+                        <span class="w-8 text-center font-black text-lg ${i < 3 ? 'text-yellow-500' : 'text-slate-600'}">${i + 1}</span>
+                        <span class="font-black uppercase text-sm">${p.name}</span>
                     </div>
-                    <div class="font-mono font-black text-yellow-500 text-sm">${p.elo}</div>
+                    <div class="font-mono font-black text-yellow-500 text-lg">${p.elo}</div>
                 </div>
             `).join('');
         }
@@ -268,7 +277,6 @@
             const p1Serves = (gameState.gameFirstServer === 1) ? turn : !turn;
             document.getElementById('card-1').classList.toggle('active-side', gameState.p1Index !== -1 && p1Serves);
             document.getElementById('card-2').classList.toggle('active-side', gameState.p2Index !== -1 && !p1Serves);
-            
             document.getElementById('p1-select').value = gameState.p1Index;
             document.getElementById('p2-select').value = gameState.p2Index;
         }
@@ -281,11 +289,18 @@
             s1.value = gameState.p1Index; s2.value = gameState.p2Index;
         }
 
-        function undo() { if (gameState.history?.length > 0) { const last = JSON.parse(gameState.history.pop()); Object.assign(gameState, { p1Score: last.s1, p2Score: last.s2, p1Games: last.g1, p2Games: last.g2, gameFirstServer: last.fs, setScores: last.ss || [] }); pushTable(); } }
+        function undo() { 
+            if (gameState.isGameOver) return;
+            if (gameState.history?.length > 0) { 
+                const last = JSON.parse(gameState.history.pop()); 
+                Object.assign(gameState, { p1Score: last.s1, p2Score: last.s2, p1Games: last.g1, p2Games: last.g2, gameFirstServer: last.fs, setScores: last.ss || [] }); 
+                pushTable(); 
+            } 
+        }
         
         function resetMatch() { 
             if(confirm("Reset Current Match?")){ 
-                Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1 }); 
+                Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1, isGameOver: false }); 
                 pushTable(); 
             } 
         }
