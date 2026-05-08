@@ -148,4 +148,47 @@
             if ((gameState.p1Score >= 11 || gameState.p2Score >= 11) && d >= 2) {
                 gameState.p1Score > gameState.p2Score ? gameState.p1Games++ : gameState.p2Games++;
                 gameState.p1Score = 0; gameState.p2Score = 0;
-                gameState.gameFirstServer = (gameState
+                gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
+                if (gameState.p1Games == gameState.matchFormat || gameState.p2Games == gameState.matchFormat) { recordMatch(); return; }
+            }
+            cloudPush();
+        }
+
+        function recordMatch() {
+            const p1Won = gameState.p1Games > gameState.p2Games;
+            const winnerName = p1Won ? players[gameState.p1Index].name : players[gameState.p2Index].name;
+            document.getElementById('winner-name').innerText = winnerName;
+            document.getElementById('custom-alert').style.display = 'block';
+            gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = [];
+            cloudPush();
+        }
+
+        function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
+        function undo() { if (gameState.history.length > 0) { const last = JSON.parse(gameState.history.pop()); gameState.p1Score = last.s1; gameState.p2Score = last.s2; gameState.p1Games = last.g1; gameState.p2Games = last.g2; gameState.gameFirstServer = last.fs; cloudPush(); } }
+        function resetMatch() { if(confirm("Reset?")){ gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = []; cloudPush(); } }
+        function updatePlayerOptions() {
+            const options = players.map(p => `<option value="${p.name}">${p.name} [${p.elo}]</option>`).join('');
+            const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
+            if (s1.options.length !== players.length) { s1.innerHTML = options; s2.innerHTML = options; s1.selectedIndex = gameState.p1Index; s2.selectedIndex = gameState.p2Index; }
+        }
+        function updateUI() {
+            document.getElementById('score-1').innerText = gameState.p1Score;
+            document.getElementById('score-2').innerText = gameState.p2Score;
+            document.getElementById('games-1').innerText = `Sets: ${gameState.p1Games}`;
+            document.getElementById('games-2').innerText = `Sets: ${gameState.p2Games}`;
+            document.getElementById('name-1').innerText = players[gameState.p1Index]?.name || "---";
+            document.getElementById('name-2').innerText = players[gameState.p2Index]?.name || "---";
+            document.getElementById('match-format').value = gameState.matchFormat;
+            const total = gameState.p1Score + gameState.p2Score;
+            const turn = (gameState.p1Score >= 10 && gameState.p2Score >= 10) ? (total % 2 === 0) : (Math.floor(total / 2) % 2 === 0);
+            const p1Serves = (gameState.gameFirstServer === 1) ? turn : !turn;
+            document.getElementById('card-1').classList.toggle('active-side', p1Serves);
+            document.getElementById('card-2').classList.toggle('active-side', !p1Serves);
+        }
+        function syncSettings() { gameState.matchFormat = parseInt(document.getElementById('match-format').value); cloudPush(); }
+        function initGameServer() { gameState.gameFirstServer = parseInt(document.getElementById('manual-server').value); cloudPush(); }
+        function syncMatchSelection() { gameState.p1Index = document.getElementById('p1-select').selectedIndex; gameState.p2Index = document.getElementById('p2-select').selectedIndex; cloudPush(); }
+        function addPlayer() { const n = document.getElementById('new-name').value.trim(); if(n){ players.push({name:n, elo:1200}); document.getElementById('new-name').value=''; cloudPush(); } }
+    </script>
+</body>
+</html>
