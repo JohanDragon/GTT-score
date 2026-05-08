@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GTT Rankings - Unified League</title>
+    <title>GTT Rankings - Unified Hub</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,33 +20,30 @@
         .admin-only { display: none; }
         .table-btn { @apply flex-1 py-3 text-[10px] font-black rounded-xl transition-all border border-slate-800 bg-slate-900 text-slate-500; }
         .table-btn.active { @apply bg-yellow-500 text-black border-yellow-500 shadow-lg shadow-yellow-500/20; }
-        @media (orientation: landscape) {
-            .player-name-text { font-size: 1.5rem !important; margin-bottom: 0.5rem !important; }
-            .score-text { font-size: 10rem !important; }
-        }
+        @media (orientation: landscape) { .player-name-text { font-size: 1.5rem !important; } .score-text { font-size: 10rem !important; } }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 font-sans select-none relative">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 font-sans select-none">
 
     <div id="custom-alert" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] w-[85%] max-w-xs glass border border-yellow-500/50 p-8 rounded-[2.5rem] text-center shadow-2xl fade-in">
         <div class="text-5xl mb-4">🏆</div>
-        <h2 class="text-2xl font-black uppercase tracking-tighter mb-2">Match Finished</h2>
+        <h2 class="text-2xl font-black uppercase mb-2">Match Finished</h2>
         <p id="winner-info" class="text-yellow-500 font-bold mb-6 italic text-lg"></p>
-        <button onclick="closeAlert()" class="w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase active:scale-95 transition">Confirm</button>
+        <button onclick="closeAlert()" class="w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase">Confirm</button>
     </div>
 
     <div class="max-w-4xl mx-auto space-y-5 pb-12">
         <header class="text-center py-2">
             <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter italic">GTT Rankings</h1>
             <div class="flex gap-2 mt-4 max-w-sm mx-auto">
-                <button onclick="switchTable(1)" id="btn-t1" class="table-btn tracking-tighter">TABLE 1</button>
-                <button onclick="switchTable(2)" id="btn-t2" class="table-btn tracking-tighter">TABLE 2</button>
-                <button onclick="switchTable(3)" id="btn-t3" class="table-btn tracking-tighter">TABLE 3</button>
+                <button onclick="switchTable(1)" id="btn-t1" class="table-btn">TABLE 1</button>
+                <button onclick="switchTable(2)" id="btn-t2" class="table-btn">TABLE 2</button>
+                <button onclick="switchTable(3)" id="btn-t3" class="table-btn">TABLE 3</button>
             </div>
-            <div class="flex justify-center items-center mt-3">
+            <div class="flex justify-center items-center mt-3 text-[10px] font-bold text-slate-600 uppercase">
                 <span id="status-dot" class="sync-indicator"></span>
-                <p id="status-text" class="text-slate-600 text-[10px] font-bold tracking-[0.2em] uppercase">Connecting...</p>
-                <span id="mode-badge" class="ml-2 text-[8px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded uppercase font-bold tracking-widest">SANCIPA MODE</span>
+                <span id="status-text">Connecting...</span>
+                <span id="mode-badge" class="ml-2 bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded tracking-widest">SANCIPA MODE</span>
             </div>
         </header>
 
@@ -92,23 +89,23 @@
         </main>
 
         <div class="flex gap-4">
-            <button onclick="undo()" class="flex-1 bg-slate-900 py-4 rounded-xl font-black text-slate-500 text-[10px] border border-slate-800">RETURN</button>
-            <button onclick="resetMatch()" class="flex-1 bg-slate-900 py-4 rounded-xl font-black text-slate-500 text-[10px] border border-slate-800">RESET</button>
+            <button onclick="undo()" class="flex-1 bg-slate-900 py-4 rounded-xl font-black text-slate-500 text-[10px] border border-slate-800 uppercase">Return</button>
+            <button onclick="resetMatch()" class="flex-1 bg-slate-900 py-4 rounded-xl font-black text-slate-500 text-[10px] border border-slate-800 uppercase">Reset</button>
         </div>
 
         <section class="space-y-3">
-            <h2 class="text-xs font-black uppercase text-yellow-500 px-2 tracking-widest flex items-center"><span class="mr-2">🏆</span> Unified Leaderboard</h2>
+            <h2 class="text-xs font-black uppercase text-yellow-500 px-2 tracking-widest flex items-center"><span class="mr-2">🏆</span> Ranking Leaderboard</h2>
             <div id="leaderboard" class="glass rounded-[1.5rem] border border-slate-800 overflow-hidden divide-y divide-slate-800/50"></div>
         </section>
 
         <section class="space-y-3">
-            <h2 class="text-xs font-black uppercase text-slate-600 px-2 tracking-widest">Recent Matches</h2>
+            <h2 class="text-xs font-black uppercase text-slate-600 px-2 tracking-widest">Global History (All Tables)</h2>
             <div id="history-list" class="space-y-2"></div>
         </section>
     </div>
 
     <script>
-        // --- 填入後的 Firebase 設定 ---
+        // --- Firebase 配置 ---
         const firebaseConfig = {
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
@@ -125,28 +122,43 @@
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = urlParams.get('auth') === 'admin';
         
-        let currentTable = parseInt(localStorage.getItem('gtt_active_table')) || 1;
         let players = []; 
-        let matchRecords = [];
+        let globalHistory = [];
+        let currentTable = parseInt(localStorage.getItem('gtt_active_table')) || 1;
         let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [] };
 
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             const badge = document.getElementById('mode-badge');
-            badge.innerText = "RANKING MODE"; 
-            badge.classList.replace('bg-blue-500/20', 'bg-red-500/20'); 
-            badge.classList.replace('text-blue-400', 'text-red-500');
+            badge.innerText = "RANKING MODE"; badge.classList.replace('bg-blue-500/20', 'bg-red-500/20'); badge.classList.replace('text-blue-400', 'text-red-500');
         }
 
-        const playersRef = db.ref('gtt_global/players'); 
-        let tableRef = db.ref(`gtt_tables/t${currentTable}`);
+        const playersRef = db.ref('gtt_unified/players');
+        const historyRef = db.ref('gtt_unified/global_history');
+        let tableRef = null;
+
+        playersRef.on('value', (snap) => { players = snap.val() || []; updatePlayerOptions(); renderLeaderboard(); });
+        historyRef.on('value', (snap) => { globalHistory = snap.val() || []; renderHistory(); });
 
         function switchTable(num) {
+            if (tableRef) tableRef.off();
             currentTable = num;
             localStorage.setItem('gtt_active_table', num);
-            tableRef.off(); 
-            tableRef = db.ref(`gtt_tables/t${num}`);
-            initTableSync();
+            tableRef = db.ref(`gtt_unified/table_${num}_state`);
+            
+            tableRef.on('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    gameState = data;
+                    if (!gameState.history) gameState.history = [];
+                    if (!gameState.setScores) gameState.setScores = [];
+                } else {
+                    gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [] };
+                }
+                updateUI();
+                document.getElementById('status-dot').classList.add('online');
+                document.getElementById('status-text').innerText = `T${currentTable} LIVE`;
+            });
             updateTableUI();
         }
 
@@ -154,32 +166,9 @@
             [1, 2, 3].forEach(n => document.getElementById(`btn-t${n}`).classList.toggle('active', n === currentTable));
         }
 
-        playersRef.on('value', (snapshot) => {
-            players = snapshot.val() || [];
-            updatePlayerOptions();
-            renderLeaderboard();
-        });
-
-        function initTableSync() {
-            tableRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    matchRecords = data.matchRecords || [];
-                    if (data.gameState) {
-                        gameState = data.gameState;
-                        if (!gameState.history) gameState.history = [];
-                        if (!gameState.setScores) gameState.setScores = [];
-                    }
-                    updateUI();
-                    renderHistory();
-                    document.getElementById('status-dot').classList.add('online');
-                    document.getElementById('status-text').innerText = `T${currentTable} ${isAdmin ? 'Ranked' : 'Sancipa'}`;
-                }
-            });
-        }
-
-        function cloudPushTable() { tableRef.set({ matchRecords, gameState }); }
-        function cloudPushPlayers() { playersRef.set(players); }
+        function pushTable() { tableRef.set(gameState); }
+        function pushPlayers() { playersRef.set(players); }
+        function pushHistory() { historyRef.set(globalHistory); }
 
         function changeScore(p, v) {
             if(gameState.p1Index === -1 || gameState.p2Index === -1) { alert("Select Players!"); return; }
@@ -194,7 +183,7 @@
                 gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
                 if (gameState.p1Games >= gameState.matchFormat || gameState.p2Games >= gameState.matchFormat) { saveMatchResult(); return; }
             }
-            cloudPushTable();
+            pushTable();
         }
 
         function saveMatchResult() {
@@ -205,41 +194,42 @@
                 const exp = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
                 const gain = Math.round(32 * ((p1Won ? 1 : 0) - exp));
                 p1.elo += gain; p2.elo -= gain;
-                cloudPushPlayers();
+                pushPlayers();
                 document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} (+${gain})`;
             } else {
                 document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} WINS!`;
             }
 
-            matchRecords.unshift({
+            globalHistory.unshift({
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 p1: p1.name, p2: p2.name,
                 score: `${gameState.p1Games}-${gameState.p2Games}`,
                 sets: gameState.setScores.join(', '),
                 mode: isAdmin ? "[RANKING]" : "[SANCIPA]",
-                table: `TABLE ${currentTable}`
+                table: `T${currentTable}`
             });
-            if (matchRecords.length > 10) matchRecords.pop();
+            if (globalHistory.length > 10) globalHistory.pop();
+            pushHistory();
 
             document.getElementById('custom-alert').style.display = 'block';
             gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; 
             gameState.history = []; gameState.setScores = [];
-            cloudPushTable();
+            pushTable();
         }
 
         function renderHistory() {
             const container = document.getElementById('history-list');
-            container.innerHTML = matchRecords.map(r => `
+            container.innerHTML = globalHistory.map(r => `
                 <div class="glass p-4 rounded-2xl border border-slate-800 space-y-1">
                     <div class="flex justify-between items-center text-[9px] font-black uppercase">
                         <span class="${r.mode === '[RANKING]' ? 'text-red-500' : 'text-blue-400'}">${r.mode} | ${r.table}</span>
                         <span class="text-slate-600">${r.time}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <div class="text-xs font-bold uppercase"><span class="text-blue-400">${r.p1}</span> <span class="text-slate-600 text-[10px]">vs</span> <span class="text-red-400">${r.p2}</span></div>
+                        <div class="text-xs font-bold uppercase"><span class="text-blue-400">${r.p1}</span> vs <span class="text-red-400">${r.p2}</span></div>
                         <div class="text-sm font-black text-yellow-500">${r.score}</div>
                     </div>
-                    <div class="text-[9px] text-slate-500 font-mono">Sets: ${r.sets}</div>
+                    <div class="text-[9px] text-slate-500 font-mono italic">Sets: ${r.sets}</div>
                 </div>
             `).join('');
         }
@@ -275,23 +265,22 @@
 
         function updatePlayerOptions() {
             const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
-            const currentP1 = gameState.p1Index, currentP2 = gameState.p2Index;
             let options = `<option value="-1">-- SELECT PLAYER --</option>`;
             options += players.map((p, i) => `<option value="${i}">${p.name} [${p.elo}]</option>`).join('');
             s1.innerHTML = options; s2.innerHTML = options;
-            s1.value = currentP1; s2.value = currentP2;
+            s1.value = gameState.p1Index; s2.value = gameState.p2Index;
         }
 
-        function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; gameState.p1Index = -1; gameState.p2Index = -1; cloudPushTable(); }
-        function undo() { if (gameState.history?.length > 0) { const last = JSON.parse(gameState.history.pop()); gameState.p1Score = last.s1; gameState.p2Score = last.s2; gameState.p1Games = last.g1; gameState.p2Games = last.g2; gameState.gameFirstServer = last.fs; gameState.setScores = last.ss || []; cloudPushTable(); } }
-        function resetMatch() { if(confirm("Reset Match?")){ gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = []; gameState.setScores = []; gameState.p1Index = -1; gameState.p2Index = -1; cloudPushTable(); } }
-        function syncSettings() { gameState.matchFormat = parseInt(document.getElementById('match-format').value); cloudPushTable(); }
-        function initGameServer() { gameState.gameFirstServer = parseInt(document.getElementById('manual-server').value); cloudPushTable(); }
-        function syncMatchSelection() { gameState.p1Index = parseInt(document.getElementById('p1-select').value); gameState.p2Index = parseInt(document.getElementById('p2-select').value); cloudPushTable(); }
-        function addPlayer() { const n = document.getElementById('new-name').value.trim(); if(n){ players.push({name:n, elo:1200}); document.getElementById('new-name').value=''; cloudPushPlayers(); } }
-        function deleteSelectedPlayer() { if(isAdmin && gameState.p1Index !== -1 && confirm("Delete selected?")){ players.splice(gameState.p1Index, 1); gameState.p1Index=-1; cloudPushPlayers(); } }
+        function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; gameState.p1Index = -1; gameState.p2Index = -1; pushTable(); }
+        function undo() { if (gameState.history?.length > 0) { const last = JSON.parse(gameState.history.pop()); Object.assign(gameState, { p1Score: last.s1, p2Score: last.s2, p1Games: last.g1, p2Games: last.g2, gameFirstServer: last.fs, setScores: last.ss || [] }); pushTable(); } }
+        function resetMatch() { if(confirm("Reset Match?")){ Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1 }); pushTable(); } }
+        function syncSettings() { gameState.matchFormat = parseInt(document.getElementById('match-format').value); pushTable(); }
+        function initGameServer() { gameState.gameFirstServer = parseInt(document.getElementById('manual-server').value); pushTable(); }
+        function syncMatchSelection() { gameState.p1Index = parseInt(document.getElementById('p1-select').value); gameState.p2Index = parseInt(document.getElementById('p2-select').value); pushTable(); }
+        function addPlayer() { const n = document.getElementById('new-name').value.trim(); if(n){ players.push({name:n, elo:1200}); document.getElementById('new-name').value=''; pushPlayers(); } }
+        function deleteSelectedPlayer() { if(isAdmin && gameState.p1Index !== -1 && confirm("Delete?")){ players.splice(gameState.p1Index, 1); pushPlayers(); } }
 
-        updateTableUI(); initTableSync();
+        switchTable(currentTable);
     </script>
 </body>
 </html>
