@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GTT Rankings - SANCIPA</title>
+    <title>GTT Rankings - SANCIPA Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,12 +17,9 @@
         #custom-alert { display: none; }
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
-        
         .admin-only { display: none; }
-
         .table-btn { @apply flex-1 py-3 text-xs font-black rounded-xl transition-all border border-slate-800 bg-slate-900 text-slate-500; }
         .table-btn.active { @apply bg-yellow-500 text-black border-yellow-500 shadow-lg shadow-yellow-500/20; }
-
         @media (orientation: landscape) {
             .player-name-text { font-size: 1.5rem !important; margin-bottom: 0.5rem !important; }
             .player-sets-text { font-size: 1rem !important; margin-bottom: 1rem !important; }
@@ -42,13 +39,11 @@
     <div class="max-w-4xl mx-auto space-y-5 pb-12">
         <header class="text-center py-2">
             <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-tighter">GTT Rankings</h1>
-            
             <div class="flex gap-2 mt-4 max-w-sm mx-auto">
                 <button onclick="switchTable(1)" id="btn-t1" class="table-btn">TABLE 1</button>
                 <button onclick="switchTable(2)" id="btn-t2" class="table-btn">TABLE 2</button>
                 <button onclick="switchTable(3)" id="btn-t3" class="table-btn">TABLE 3</button>
             </div>
-
             <div class="flex justify-center items-center mt-3">
                 <span id="status-dot" class="sync-indicator"></span>
                 <p id="status-text" class="text-slate-600 text-[10px] font-bold tracking-[0.3em] uppercase">Connecting...</p>
@@ -74,7 +69,6 @@
                     <div class="text-slate-700 font-black italic">VS</div>
                     <select id="p2-select" onchange="syncMatchSelection()" class="w-[44%] bg-transparent py-2 outline-none text-red-400 font-black text-center text-sm"></select>
                 </div>
-                
                 <div class="flex gap-2">
                     <input id="new-name" type="text" placeholder="New Player Name..." class="flex-1 bg-slate-900/50 p-3 rounded-xl border border-slate-800 outline-none text-center text-sm">
                     <button onclick="addPlayer()" class="bg-yellow-500 text-black px-5 font-black rounded-xl text-xs">ADD</button>
@@ -97,7 +91,7 @@
                     <div id="name-2" class="player-name-text text-sm font-black text-red-400 mb-1 truncate uppercase">---</div>
                     <div id="games-2" class="player-sets-text text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase">Sets: 0</div>
                 </div>
-                <div id="score-2" class="score-text text-[8rem] leading-none font-black mb-6">0</div>
+                <div id="score-2" class="score-text text-[8rem] font-black leading-none mb-6">0</div>
                 <button onclick="changeScore(2, 1)" class="w-full bg-red-600 h-28 rounded-[2rem] text-6xl font-black shadow-xl active:bg-red-500 transition">＋</button>
             </div>
         </main>
@@ -113,12 +107,13 @@
         </section>
 
         <section class="space-y-3">
-            <h2 class="text-xs font-black uppercase text-slate-600 px-2 tracking-widest">Recent Matches</h2>
+            <h2 class="text-xs font-black uppercase text-slate-600 px-2 tracking-widest">Recent 10 Matches</h2>
             <div id="history-list" class="space-y-2"></div>
         </section>
     </div>
 
     <script>
+        // --- 填入的 Firebase 配置 ---
         const firebaseConfig = {
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
@@ -132,40 +127,34 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = urlParams.get('auth') === 'admin';
-        
         let currentTable = parseInt(localStorage.getItem('gtt_active_table')) || 1;
         let dataRef = db.ref(`gtt_live_data_t${currentTable}`);
 
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             const badge = document.getElementById('mode-badge');
-            badge.innerText = "RANKED MODE";
+            badge.innerText = "RANKING MODE";
             badge.classList.replace('bg-blue-500/20', 'bg-red-500/20');
             badge.classList.replace('text-blue-400', 'text-red-500');
         }
 
         let players = [];
         let matchRecords = [];
-        let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1 };
+        let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [] };
 
-        function switchTable(num) {
-            currentTable = num;
-            localStorage.setItem('gtt_active_table', num);
-            dataRef.off();
-            dataRef = db.ref(`gtt_live_data_t${num}`);
-            initSync();
-            updateTableUI();
+        function switchTable(num) { 
+            currentTable = num; 
+            localStorage.setItem('gtt_active_table', num); 
+            dataRef.off(); 
+            dataRef = db.ref(`gtt_live_data_t${num}`); 
+            initSync(); 
+            updateTableUI(); 
         }
 
-        function updateTableUI() {
-            [1, 2, 3].forEach(n => {
-                const btn = document.getElementById(`btn-t${n}`);
-                if (n === currentTable) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
+        function updateTableUI() { 
+            [1, 2, 3].forEach(n => document.getElementById(`btn-t${n}`).classList.toggle('active', n === currentTable)); 
         }
 
         function cloudPush() { dataRef.set({ players, matchRecords, gameState }); }
@@ -179,25 +168,24 @@
                     if (data.gameState) {
                         gameState = data.gameState;
                         if (!gameState.history) gameState.history = [];
+                        if (!gameState.setScores) gameState.setScores = [];
                     }
-                    updateUI();
-                    updatePlayerOptions();
-                    renderHistory();
-                    renderLeaderboard();
+                    updateUI(); updatePlayerOptions(); renderHistory(); renderLeaderboard();
                     document.getElementById('status-dot').classList.add('online');
-                    document.getElementById('status-text').innerText = isAdmin ? `T${currentTable} Live` : `T${currentTable} Casual`;
+                    document.getElementById('status-text').innerText = isAdmin ? `T${currentTable} Ranked` : `T${currentTable} Sancipa`;
                 }
             });
         }
 
         function changeScore(p, v) {
             if(gameState.p1Index === -1 || gameState.p2Index === -1) { alert("Select Players!"); return; }
-            gameState.history.push(JSON.stringify({ s1: gameState.p1Score, s2: gameState.p2Score, g1: gameState.p1Games, g2: gameState.p2Games, fs: gameState.gameFirstServer }));
+            gameState.history.push(JSON.stringify({ s1: gameState.p1Score, s2: gameState.p2Score, g1: gameState.p1Games, g2: gameState.p2Games, fs: gameState.gameFirstServer, ss: [...(gameState.setScores || [])] }));
             if (gameState.history.length > 2) gameState.history.shift();
             p === 1 ? gameState.p1Score += v : gameState.p2Score += v;
-            
             const diff = Math.abs(gameState.p1Score - gameState.p2Score);
             if ((gameState.p1Score >= 11 || gameState.p2Score >= 11) && diff >= 2) {
+                if(!gameState.setScores) gameState.setScores = [];
+                gameState.setScores.push(`${gameState.p1Score}-${gameState.p2Score}`);
                 gameState.p1Score > gameState.p2Score ? gameState.p1Games++ : gameState.p2Games++;
                 gameState.p1Score = 0; gameState.p2Score = 0;
                 gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
@@ -209,20 +197,30 @@
         function saveMatchResult() {
             const p1Won = gameState.p1Games > gameState.p2Games;
             const p1 = players[gameState.p1Index], p2 = players[gameState.p2Index];
+            const setHistory = (gameState.setScores || []).join(', ');
+            let resultLabel = isAdmin ? "[RANKING]" : "[SANCIPA]";
             
             if (isAdmin) {
                 const exp = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
                 const gain = Math.round(32 * ((p1Won ? 1 : 0) - exp));
                 p1.elo += gain; p2.elo -= gain;
                 document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} (+${gain})`;
-                matchRecords.unshift({ time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), p1: p1.name, p2: p2.name, score: `${gameState.p1Games}-${gameState.p2Games}` });
-                if (matchRecords.length > 10) matchRecords.pop();
             } else {
                 document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} WINS!`;
             }
-            
+
+            matchRecords.unshift({
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                p1: p1.name, p2: p2.name,
+                score: `${gameState.p1Games}-${gameState.p2Games}`,
+                sets: setHistory,
+                mode: resultLabel
+            });
+            if (matchRecords.length > 10) matchRecords.pop();
+
             document.getElementById('custom-alert').style.display = 'block';
-            gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = [];
+            gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; 
+            gameState.history = []; gameState.setScores = [];
             cloudPush();
         }
 
@@ -245,9 +243,16 @@
         function renderHistory() {
             const container = document.getElementById('history-list');
             container.innerHTML = matchRecords.map(r => `
-                <div class="glass p-3 rounded-xl border border-slate-800 flex justify-between items-center text-[10px]">
-                    <div class="font-bold"><span class="text-blue-400">${r.p1}</span> vs <span class="text-red-400">${r.p2}</span></div>
-                    <div class="font-black text-yellow-500">${r.score} <span class="text-slate-600 font-normal ml-2">${r.time}</span></div>
+                <div class="glass p-4 rounded-2xl border border-slate-800 space-y-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[9px] font-black ${r.mode === '[RANKING]' ? 'text-red-500' : 'text-blue-400'}">${r.mode}</span>
+                        <span class="text-[9px] text-slate-600 font-bold">${r.time}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-xs font-bold uppercase"><span class="text-blue-400">${r.p1}</span> vs <span class="text-red-400">${r.p2}</span></div>
+                        <div class="text-sm font-black text-yellow-500">${r.score}</div>
+                    </div>
+                    <div class="text-[10px] text-slate-500 font-mono italic">Sets: ${r.sets || 'N/A'}</div>
                 </div>
             `).join('');
         }
@@ -276,16 +281,15 @@
             s1.value = gameState.p1Index; s2.value = gameState.p2Index;
         }
 
-        function undo() { if (gameState.history?.length > 0) { const last = JSON.parse(gameState.history.pop()); gameState.p1Score = last.s1; gameState.p2Score = last.s2; gameState.p1Games = last.g1; gameState.p2Games = last.g2; gameState.gameFirstServer = last.fs; cloudPush(); } }
-        function resetMatch() { if(confirm("Reset Match?")){ gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = []; gameState.p1Index = -1; gameState.p2Index = -1; cloudPush(); } }
+        function undo() { if (gameState.history?.length > 0) { const last = JSON.parse(gameState.history.pop()); gameState.p1Score = last.s1; gameState.p2Score = last.s2; gameState.p1Games = last.g1; gameState.p2Games = last.g2; gameState.gameFirstServer = last.fs; gameState.setScores = last.ss || []; cloudPush(); } }
+        function resetMatch() { if(confirm("Reset Match?")){ gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = []; gameState.setScores = []; gameState.p1Index = -1; gameState.p2Index = -1; cloudPush(); } }
         function syncSettings() { gameState.matchFormat = parseInt(document.getElementById('match-format').value); cloudPush(); }
         function initGameServer() { gameState.gameFirstServer = parseInt(document.getElementById('manual-server').value); cloudPush(); }
         function syncMatchSelection() { gameState.p1Index = parseInt(document.getElementById('p1-select').value); gameState.p2Index = parseInt(document.getElementById('p2-select').value); cloudPush(); }
         function addPlayer() { const n = document.getElementById('new-name').value.trim(); if(n){ players.push({name:n, elo:1200}); document.getElementById('new-name').value=''; cloudPush(); } }
         function deleteSelectedPlayer() { if(isAdmin && gameState.p1Index !== -1 && confirm("Delete selected player?")){ players.splice(gameState.p1Index, 1); gameState.p1Index=-1; gameState.p2Index=-1; cloudPush(); } }
 
-        updateTableUI();
-        initSync();
+        updateTableUI(); initSync();
     </script>
 </body>
 </html>
