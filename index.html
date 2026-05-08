@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GTT Rankings - Live Sync</title>
+    <title>GTT Rankings - Cloud Sync</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,9 +13,19 @@
         body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
         .sync-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
         .online { background: #10b981; box-shadow: 0 0 8px #10b981; }
+        /* 自定義彈窗動畫 */
+        #custom-alert { display: none; }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 font-sans select-none">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 font-sans select-none relative">
+
+    <div id="custom-alert" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] w-[80%] max-w-xs glass border border-yellow-500/50 p-8 rounded-[2rem] text-center shadow-2xl fade-in">
+        <div class="text-yellow-500 text-5xl mb-4">🏆</div>
+        <h2 class="text-2xl font-black uppercase tracking-tighter mb-6">Game Finished</h2>
+        <button onclick="closeAlert()" class="w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase active:scale-95 transition">Confirm</button>
+    </div>
 
     <div class="max-w-2xl mx-auto space-y-6 pb-12">
         <header class="text-center py-4">
@@ -23,8 +33,8 @@
                 GTT Rankings
             </h1>
             <div class="flex justify-center items-center mt-1">
-                <span id="status-dot" class="sync-indicator bg-slate-700"></span>
-                <p id="status-text" class="text-slate-500 text-[10px] font-bold tracking-[0.3em] uppercase">Connecting Cloud...</p>
+                <span id="status-dot" class="sync-indicator"></span>
+                <p id="status-text" class="text-slate-500 text-[10px] font-bold tracking-[0.3em] uppercase">Connecting...</p>
             </div>
         </header>
 
@@ -63,14 +73,14 @@
 
         <main class="grid grid-cols-2 gap-4">
             <div id="card-1" class="glass p-6 rounded-[2.5rem] border border-slate-800 text-center transition-all">
-                <div id="name-1" class="text-sm font-bold text-blue-400 mb-1 truncate">---</div>
+                <div id="name-1" class="text-sm font-bold text-blue-400 mb-1 truncate px-1">---</div>
                 <div id="games-1" class="text-[10px] text-slate-500 mb-1 font-mono font-bold uppercase tracking-widest">Games: 0</div>
                 <div id="score-1" class="text-[7.5rem] leading-none font-black mb-6">0</div>
                 <button onclick="changeScore(1, 1)" class="w-full bg-blue-600 h-28 rounded-3xl text-5xl font-black shadow-xl active:bg-blue-500 transition">＋</button>
             </div>
 
             <div id="card-2" class="glass p-6 rounded-[2.5rem] border border-slate-800 text-center transition-all">
-                <div id="name-2" class="text-sm font-bold text-red-400 mb-1 truncate">---</div>
+                <div id="name-2" class="text-sm font-bold text-red-400 mb-1 truncate px-1">---</div>
                 <div id="games-2" class="text-[10px] text-slate-500 mb-1 font-mono font-bold uppercase tracking-widest">Games: 0</div>
                 <div id="score-2" class="text-[7.5rem] leading-none font-black mb-6">0</div>
                 <button onclick="changeScore(2, 1)" class="w-full bg-red-600 h-28 rounded-3xl text-5xl font-black shadow-xl active:bg-red-500 transition">＋</button>
@@ -78,8 +88,8 @@
         </main>
 
         <div class="flex gap-4">
-            <button onclick="undo()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 text-xs uppercase border border-slate-700">Return (Max 2)</button>
-            <button onclick="resetMatch()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 text-xs uppercase border border-slate-700">Reset</button>
+            <button onclick="undo()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 text-xs tracking-widest uppercase border border-slate-700">Return</button>
+            <button onclick="resetMatch()" class="flex-1 bg-slate-800 py-4 rounded-2xl font-black text-slate-400 text-xs tracking-widest uppercase border border-slate-700">Reset</button>
         </div>
 
         <section class="space-y-3">
@@ -92,38 +102,24 @@
     </div>
 
     <script>
-        // --- Firebase Configuration ---
         const firebaseConfig = {
-            apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
-            authDomain: "gtt-rankings.firebaseapp.com",
-            databaseURL: "https://gtt-rankings-default-rtdb.firebaseio.com",
-            projectId: "gtt-rankings",
-            storageBucket: "gtt-rankings.firebasestorage.app",
-            messagingSenderId: "96701388869",
-            appId: "1:96701388869:web:f66a13c8cffe70c0c4eb2c",
-            measurementId: "G-MJWRM5ZV8K"
+            apiKey: "你的_API_KEY",
+            authDomain: "你的_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://你的_PROJECT_ID.firebaseio.com",
+            projectId: "你的_PROJECT_ID",
+            storageBucket: "你的_PROJECT_ID.appspot.com",
+            messagingSenderId: "你的_SENDER_ID",
+            appId: "你的_APP_ID"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const dataRef = db.ref('gtt_live_data');
 
-        // Initial State
         let players = [{ name: 'Player 1', elo: 1200 }, { name: 'Player 2', elo: 1200 }];
         let matchHistory = [];
-        let gameState = { 
-            p1Score: 0, p2Score: 0, 
-            p1Games: 0, p2Games: 0, 
-            gameFirstServer: 1, 
-            history: [],
-            matchFormat: 3,
-            p1Index: 0,
-            p2Index: 1
-        };
+        let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: 0, p2Index: 1 };
         const K = 32;
-
-        // --- Core Sync Logic ---
 
         function cloudPush() {
             dataRef.set({ players, matchHistory, gameState });
@@ -134,65 +130,18 @@
             if (data) {
                 players = data.players || players;
                 matchHistory = data.matchHistory || matchHistory;
-                if (data.gameState) gameState = data.gameState;
-                
-                // Sync UI Inputs
-                document.getElementById('match-format').value = gameState.matchFormat;
-                
-                updateUI();
-                renderHistory();
-                updatePlayerOptions();
-                
+                if (data.gameState) {
+                    gameState = data.gameState;
+                    document.getElementById('match-format').value = gameState.matchFormat;
+                }
+                updateUI(); renderHistory(); updatePlayerOptions();
                 document.getElementById('status-dot').classList.add('online');
-                document.getElementById('status-text').innerText = "Live Synced";
+                document.getElementById('status-text').innerText = "Cloud Synced";
             }
         });
 
-        // --- Game Functions ---
-
-        function initGameServer() {
-            gameState.gameFirstServer = parseInt(document.getElementById('manual-server').value);
-            cloudPush();
-        }
-
-        function syncSettings() {
-            gameState.matchFormat = parseInt(document.getElementById('match-format').value);
-            cloudPush();
-        }
-
-        function syncMatchSelection() {
-            gameState.p1Index = document.getElementById('p1-select').selectedIndex;
-            gameState.p2Index = document.getElementById('p2-select').selectedIndex;
-            cloudPush();
-        }
-
-        function addPlayer() {
-            const name = document.getElementById('new-name').value.trim();
-            if (!name) return;
-            players.push({ name, elo: 1200 });
-            document.getElementById('new-name').value = '';
-            cloudPush();
-        }
-
-        function deleteSelectedPlayer() {
-            const idx = document.getElementById('p1-select').selectedIndex;
-            if (players.length <= 2) return alert("Min 2 players");
-            if (confirm(`Delete ${players[idx].name}?`)) {
-                players.splice(idx, 1);
-                // Ensure index is still valid
-                gameState.p1Index = 0;
-                gameState.p2Index = players.length > 1 ? 1 : 0;
-                cloudPush();
-            }
-        }
-
         function changeScore(player, val) {
-            gameState.history = gameState.history || [];
-            gameState.history.push(JSON.stringify({
-                s1: gameState.p1Score, s2: gameState.p2Score, 
-                g1: gameState.p1Games, g2: gameState.p2Games, 
-                fs: gameState.gameFirstServer
-            }));
+            gameState.history.push(JSON.stringify({ s1: gameState.p1Score, s2: gameState.p2Score, g1: gameState.p1Games, g2: gameState.p2Games, fs: gameState.gameFirstServer }));
             if (gameState.history.length > 2) gameState.history.shift();
 
             player === 1 ? gameState.p1Score += val : gameState.p2Score += val;
@@ -211,20 +160,9 @@
             cloudPush();
         }
 
-        function undo() {
-            if (gameState.history && gameState.history.length > 0) {
-                const last = JSON.parse(gameState.history.pop());
-                gameState.p1Score = last.s1; gameState.p2Score = last.s2;
-                gameState.p1Games = last.g1; gameState.p2Games = last.g2;
-                gameState.gameFirstServer = last.fs;
-                cloudPush();
-            }
-        }
-
         function recordMatch() {
             const i1 = gameState.p1Index, i2 = gameState.p2Index;
             const p1Won = gameState.p1Games > gameState.p2Games;
-            
             matchHistory.unshift({
                 d: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                 n1: players[i1].name, n2: players[i2].name,
@@ -242,25 +180,54 @@
             gameState.history = [];
             
             cloudPush();
-            alert("MATCH OVER");
+            // 顯示自定義彈窗
+            document.getElementById('custom-alert').style.display = 'block';
+        }
+
+        function closeAlert() {
+            document.getElementById('custom-alert').style.display = 'none';
+        }
+
+        function undo() {
+            if (gameState.history && gameState.history.length > 0) {
+                const last = JSON.parse(gameState.history.pop());
+                gameState.p1Score = last.s1; gameState.p2Score = last.s2;
+                gameState.p1Games = last.g1; gameState.p2Games = last.g2;
+                gameState.gameFirstServer = last.fs;
+                cloudPush();
+            }
         }
 
         function resetMatch() {
-            if(!confirm("Reset match?")) return;
-            gameState.p1Score = 0; gameState.p2Score = 0;
-            gameState.p1Games = 0; gameState.p2Games = 0;
-            gameState.history = [];
+            if(!confirm("Reset?")) return;
+            gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = [];
             cloudPush();
+        }
+
+        function initGameServer() { gameState.gameFirstServer = parseInt(document.getElementById('manual-server').value); cloudPush(); }
+        function syncSettings() { gameState.matchFormat = parseInt(document.getElementById('match-format').value); cloudPush(); }
+        function syncMatchSelection() { gameState.p1Index = document.getElementById('p1-select').selectedIndex; gameState.p2Index = document.getElementById('p2-select').selectedIndex; cloudPush(); }
+        
+        function addPlayer() {
+            const name = document.getElementById('new-name').value.trim();
+            if (!name) return;
+            players.push({ name, elo: 1200 });
+            document.getElementById('new-name').value = '';
+            cloudPush();
+        }
+
+        function deleteSelectedPlayer() {
+            const idx = document.getElementById('p1-select').selectedIndex;
+            if (players.length <= 2) return alert("Min 2 players");
+            if (confirm(`Delete ${players[idx].name}?`)) { players.splice(idx, 1); cloudPush(); }
         }
 
         function updatePlayerOptions() {
             const options = players.map(p => `<option value="${p.name}">${p.name} [${p.elo}]</option>`).join('');
-            const s1 = document.getElementById('p1-select');
-            const s2 = document.getElementById('p2-select');
+            const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
             if (s1.options.length !== players.length) {
                 s1.innerHTML = options; s2.innerHTML = options;
-                s1.selectedIndex = gameState.p1Index;
-                s2.selectedIndex = gameState.p2Index;
+                s1.selectedIndex = gameState.p1Index; s2.selectedIndex = gameState.p2Index;
             }
         }
 
@@ -269,15 +236,12 @@
             document.getElementById('score-2').innerText = gameState.p2Score;
             document.getElementById('games-1').innerText = `Games: ${gameState.p1Games}`;
             document.getElementById('games-2').innerText = `Games: ${gameState.p2Games}`;
-            
-            document.getElementById('name-1').innerText = players[gameState.p1Index] ? players[gameState.p1Index].name : "---";
-            document.getElementById('name-2').innerText = players[gameState.p2Index] ? players[gameState.p2Index].name : "---";
-
+            document.getElementById('name-1').innerText = players[gameState.p1Index]?.name || "---";
+            document.getElementById('name-2').innerText = players[gameState.p2Index]?.name || "---";
             const total = gameState.p1Score + gameState.p2Score;
             const deuce = (gameState.p1Score >= 10 && gameState.p2Score >= 10);
             const turn = deuce ? (total % 2 === 0) : (Math.floor(total / 2) % 2 === 0);
             const p1Serves = (gameState.gameFirstServer === 1) ? turn : !turn;
-
             document.getElementById('card-1').classList.toggle('active-side', p1Serves);
             document.getElementById('card-2').classList.toggle('active-side', !p1Serves);
         }
@@ -286,15 +250,12 @@
             document.getElementById('history-container').innerHTML = matchHistory.map(h => `
                 <div class="glass p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
                     <div class="font-bold"><span class="text-blue-400">${h.n1}</span> vs <span class="text-red-400">${h.n2}</span></div>
-                    <div class="text-right"><span class="text-yellow-500 font-black mr-2">${h.s}</span> <span class="text-slate-600 font-mono text-[9px]">${h.d}</span></div>
+                    <div class="text-right"><span class="text-yellow-500 font-black mr-2">${h.s}</span> <span class="text-slate-600 font-mono">${h.d}</span></div>
                 </div>
             `).join('');
         }
 
-        function clearHistory() { 
-            if(!confirm("Clear history?")) return;
-            matchHistory = []; cloudPush(); 
-        }
+        function clearHistory() { if(confirm("Clear?")) { matchHistory = []; cloudPush(); } }
     </script>
 </body>
 </html>
