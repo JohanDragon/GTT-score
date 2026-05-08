@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GTT Rankings - Pro Sync</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* 防止螢幕連點放大 */
+        * { touch-action: manipulation; }
+
         .active-side { border: 6px solid #fbbf24; transform: scale(1.02); box-shadow: 0 0 30px rgba(251, 191, 36, 0.4); }
         .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); }
         body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
@@ -44,13 +47,13 @@
 
         <section class="glass p-5 rounded-[2rem] border border-slate-800 shadow-2xl space-y-5">
             <div class="grid grid-cols-2 gap-4">
-                <select id="match-format" onchange="syncSettings()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-sm outline-none">
+                <select id="match-format" onchange="syncSettings()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-sm outline-none text-center">
                     <option value="1">1 Set Win</option>
                     <option value="2">2 Sets Win</option>
-                    <option value="3">3 Sets Win</option>
+                    <option value="3" selected>3 Sets Win</option>
                     <option value="5">5 Sets Win</option>
                 </select>
-                <select id="manual-server" onchange="initGameServer()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-yellow-500 text-sm outline-none">
+                <select id="manual-server" onchange="initGameServer()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-yellow-500 text-sm outline-none text-center">
                     <option value="1">P1 Start</option>
                     <option value="2">P2 Start</option>
                 </select>
@@ -74,7 +77,7 @@
             <div id="card-1" class="glass p-6 rounded-[3rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
                     <div id="name-1" class="player-name-text text-sm font-black text-blue-400 mb-1 truncate uppercase">---</div>
-                    <div id="games-1" class="player-sets-text text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase">Sets: 0</div>
+                    <div id="games-1" class="player-sets-text text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">Sets: 0</div>
                 </div>
                 <div id="score-1" class="score-text text-[8rem] leading-none font-black mb-6">0</div>
                 <button onclick="changeScore(1, 1)" class="w-full bg-blue-600 h-28 rounded-[2rem] text-6xl font-black shadow-xl active:bg-blue-500 transition">＋</button>
@@ -82,7 +85,7 @@
             <div id="card-2" class="glass p-6 rounded-[3rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
                     <div id="name-2" class="player-name-text text-sm font-black text-red-400 mb-1 truncate uppercase">---</div>
-                    <div id="games-2" class="player-sets-text text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase">Sets: 0</div>
+                    <div id="games-2" class="player-sets-text text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">Sets: 0</div>
                 </div>
                 <div id="score-2" class="score-text text-[8rem] leading-none font-black mb-6">0</div>
                 <button onclick="changeScore(2, 1)" class="w-full bg-red-600 h-28 rounded-[2rem] text-6xl font-black shadow-xl active:bg-red-500 transition">＋</button>
@@ -90,8 +93,8 @@
         </main>
 
         <div class="flex gap-4">
-            <button onclick="undo()" class="flex-1 bg-slate-900 py-5 rounded-2xl font-black text-slate-500 text-xs border border-slate-800 active:text-white transition">Return</button>
-            <button onclick="resetMatch()" class="flex-1 bg-slate-900 py-5 rounded-2xl font-black text-slate-500 text-xs border border-slate-800 active:text-red-500 transition">Reset</button>
+            <button onclick="undo()" class="flex-1 bg-slate-900 py-5 rounded-2xl font-black text-slate-500 text-xs border border-slate-800">Return</button>
+            <button onclick="resetMatch()" class="flex-1 bg-slate-900 py-5 rounded-2xl font-black text-slate-500 text-xs border border-slate-800">Reset</button>
         </div>
 
         <section class="space-y-3">
@@ -108,6 +111,7 @@
     </div>
 
     <script>
+        // 已填入您的 Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
@@ -174,13 +178,12 @@
             const p2 = players[gameState.p2Index];
             const winnerName = p1Won ? p1.name : p2.name;
 
-            // 計算積分變動
-            const exp1 = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
-            const gain = Math.round(32 * ((p1Won ? 1 : 0) - exp1));
+            const exp = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
+            const gain = Math.round(32 * ((p1Won ? 1 : 0) - exp));
+            
             p1.elo += gain; 
             p2.elo -= gain;
 
-            // 存入歷史
             matchRecords.unshift({
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 p1: p1.name,
@@ -192,9 +195,7 @@
             document.getElementById('winner-name').innerText = winnerName;
             document.getElementById('custom-alert').style.display = 'block';
 
-            gameState.p1Score = 0; gameState.p2Score = 0; 
-            gameState.p1Games = 0; gameState.p2Games = 0; 
-            gameState.history = [];
+            gameState.p1Score = 0; gameState.p2Score = 0; gameState.p1Games = 0; gameState.p2Games = 0; gameState.history = [];
             cloudPush();
         }
 
@@ -243,8 +244,8 @@
             const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
             if (s1.options.length !== players.length) {
                 s1.innerHTML = options; s2.innerHTML = options;
-                s1.selectedIndex = gameState.p1Index; s2.selectedIndex = gameState.p2Index;
             }
+            s1.selectedIndex = gameState.p1Index; s2.selectedIndex = gameState.p2Index;
         }
 
         function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
