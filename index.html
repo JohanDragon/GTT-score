@@ -16,6 +16,16 @@
         .sync-indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; }
         .online { background: #10b981; box-shadow: 0 0 10px #10b981; }
         
+        /* 發球小燈號樣式 */
+        .serve-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #334155; display: inline-block; margin-right: 6px;
+            transition: all 0.3s ease;
+        }
+        .serve-dot.active {
+            background: #fbbf24; box-shadow: 0 0 8px #fbbf24;
+        }
+
         .status-light {
             width: 12px; height: 12px; border-radius: 50%;
             background: #334155; transition: all 0.3s ease; display: inline-block;
@@ -79,7 +89,7 @@
                     <option value="4">4 Sets Win (BO7)</option>
                     <option value="5">5 Sets Win (BO9)</option>
                 </select>
-                <!-- 調整標籤為 -- Serve -- 與 P1/P2 Serve -->
+                <!-- 更新後的發球選擇器 -->
                 <select id="manual-server" onchange="initGameServer()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-yellow-500 text-sm outline-none">
                     <option value="0">-- Serve --</option>
                     <option value="1">P1 Serve</option>
@@ -104,7 +114,11 @@
             <div id="card-left" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
                     <div id="name-left" class="player-name-text text-sm font-black mb-1 truncate uppercase">---</div>
-                    <div id="games-left" class="text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">Sets: 0</div>
+                    <!-- 帶有發球燈號的 Sets 區域 -->
+                    <div class="flex items-center justify-center text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">
+                        <span id="serve-dot-left" class="serve-dot"></span>
+                        <span id="games-left">Sets: 0</span>
+                    </div>
                 </div>
                 <div id="score-left" class="score-text text-[8rem] leading-none font-black mb-4">0</div>
                 <button onclick="handleLeftClick()" id="btn-score-left" class="w-full py-8 rounded-[1.5rem] text-5xl font-black shadow-xl transition">＋</button>
@@ -112,7 +126,11 @@
             <div id="card-right" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
                     <div id="name-right" class="player-name-text text-sm font-black mb-1 truncate uppercase">---</div>
-                    <div id="games-right" class="text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">Sets: 0</div>
+                    <!-- 帶有發球燈號的 Sets 區域 -->
+                    <div class="flex items-center justify-center text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">
+                        <span id="serve-dot-right" class="serve-dot"></span>
+                        <span id="games-right">Sets: 0</span>
+                    </div>
                 </div>
                 <div id="score-right" class="score-text text-[8rem] leading-none font-black mb-4">0</div>
                 <button onclick="handleRightClick()" id="btn-score-right" class="w-full py-8 rounded-[1.5rem] text-5xl font-black shadow-xl transition">＋</button>
@@ -136,7 +154,7 @@
     </div>
 
     <script>
-        // 已填入您的 Firebase 配置
+        // 你提供的 Firebase 設定已填入下方
         const firebaseConfig = {
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
@@ -230,7 +248,6 @@
                 gameState.setScores.push(`${gameState.p1Score}-${gameState.p2Score}`);
                 gameState.p1Score > gameState.p2Score ? gameState.p1Games++ : gameState.p2Games++;
                 gameState.p1Score = 0; gameState.p2Score = 0;
-                
                 if(gameState.gameFirstServer !== 0) {
                     gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
                 }
@@ -339,11 +356,19 @@
             const isDeuce = (gameState.p1Score >= 10 && gameState.p2Score >= 10);
             const turn = isDeuce ? (totalPoints % 2 === 0) : (Math.floor(totalPoints / 2) % 2 === 0);
             
+            // 如果沒選發球員，預設 P1 先發
             const effectiveServer = gameState.gameFirstServer === 0 ? 1 : gameState.gameFirstServer;
             const p1Serves = (effectiveServer === 1) ? turn : !turn;
 
-            document.getElementById('card-left').classList.toggle('active-side', (leftPlayer === 1 && p1Serves) || (leftPlayer === 2 && !p1Serves));
-            document.getElementById('card-right').classList.toggle('active-side', (rightPlayer === 1 && p1Serves) || (rightPlayer === 2 && !p1Serves));
+            const isLeftServing = (leftPlayer === 1 && p1Serves) || (leftPlayer === 2 && !p1Serves);
+            const isRightServing = (rightPlayer === 1 && p1Serves) || (rightPlayer === 2 && !p1Serves);
+
+            document.getElementById('card-left').classList.toggle('active-side', isLeftServing);
+            document.getElementById('card-right').classList.toggle('active-side', isRightServing);
+
+            // 更新 Sets 前的小燈號
+            document.getElementById('serve-dot-left').classList.toggle('active', isLeftServing);
+            document.getElementById('serve-dot-right').classList.toggle('active', isRightServing);
 
             document.getElementById('p1-select').value = gameState.p1Index;
             document.getElementById('p2-select').value = gameState.p2Index;
