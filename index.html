@@ -79,9 +79,11 @@
                     <option value="4">4 Sets Win (BO7)</option>
                     <option value="5">5 Sets Win (BO9)</option>
                 </select>
+                <!-- 調整標籤為 -- Serve -- 與 P1/P2 Serve -->
                 <select id="manual-server" onchange="initGameServer()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-yellow-500 text-sm outline-none">
-                    <option value="1">P1 Start</option>
-                    <option value="2">P2 Start</option>
+                    <option value="0">-- Serve --</option>
+                    <option value="1">P1 Serve</option>
+                    <option value="2">P2 Serve</option>
                 </select>
             </div>
             <div class="space-y-3">
@@ -98,7 +100,6 @@
             </div>
         </section>
 
-        <!-- 計分主區域 -->
         <main class="grid grid-cols-2 gap-4">
             <div id="card-left" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
@@ -135,7 +136,7 @@
     </div>
 
     <script>
-        // 已填入你的 Firebase 設定
+        // 已填入您的 Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
@@ -155,7 +156,7 @@
         let players = []; 
         let globalHistory = [];
         let currentTable = parseInt(localStorage.getItem('gtt_active_table')) || 1;
-        let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [], isGameOver: false };
+        let gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 0, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [], isGameOver: false };
 
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
@@ -168,13 +169,7 @@
         const historyRef = db.ref('gtt_unified/global_history');
         let tableRef = null;
 
-        playersRef.on('value', (snap) => { 
-            players = snap.val() || []; 
-            updatePlayerOptions(); 
-            renderLeaderboard(); 
-            updateUI(); 
-        });
-        
+        playersRef.on('value', (snap) => { players = snap.val() || []; updatePlayerOptions(); renderLeaderboard(); updateUI(); });
         historyRef.on('value', (snap) => { globalHistory = snap.val() || []; renderHistory(); });
 
         function switchTable(num) {
@@ -197,7 +192,7 @@
         }
 
         function initLocalState() {
-            gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 1, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [], isGameOver: false };
+            gameState = { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, gameFirstServer: 0, history: [], matchFormat: 3, p1Index: -1, p2Index: -1, setScores: [], isGameOver: false };
         }
 
         function updateTableUI() { 
@@ -211,7 +206,6 @@
         function pushPlayers() { playersRef.set(players); }
         function pushHistory() { historyRef.set(globalHistory); }
 
-        // 點擊處理
         function handleLeftClick() {
             const isSwapped = (gameState.p1Games + gameState.p2Games) % 2 !== 0;
             changeScore(isSwapped ? 2 : 1, 1);
@@ -226,11 +220,7 @@
             if (gameState.isGameOver) return;
             if (gameState.p1Index === -1 || gameState.p2Index === -1) { alert("Please select both players!"); return; }
             
-            gameState.history.push(JSON.stringify({ 
-                s1: gameState.p1Score, s2: gameState.p2Score, 
-                g1: gameState.p1Games, g2: gameState.p2Games, 
-                fs: gameState.gameFirstServer, ss: [...(gameState.setScores || [])] 
-            }));
+            gameState.history.push(JSON.stringify({ s1: gameState.p1Score, s2: gameState.p2Score, g1: gameState.p1Games, g2: gameState.p2Games, fs: gameState.gameFirstServer, ss: [...(gameState.setScores || [])] }));
             if (gameState.history.length > 5) gameState.history.shift();
 
             p === 1 ? gameState.p1Score += v : gameState.p2Score += v;
@@ -240,7 +230,10 @@
                 gameState.setScores.push(`${gameState.p1Score}-${gameState.p2Score}`);
                 gameState.p1Score > gameState.p2Score ? gameState.p1Games++ : gameState.p2Games++;
                 gameState.p1Score = 0; gameState.p2Score = 0;
-                gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
+                
+                if(gameState.gameFirstServer !== 0) {
+                    gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
+                }
                 
                 if (gameState.p1Games >= gameState.matchFormat || gameState.p2Games >= gameState.matchFormat) { 
                     gameState.isGameOver = true;
@@ -281,7 +274,7 @@
 
         function closeAlert() { 
             document.getElementById('custom-alert').style.display = 'none'; 
-            Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1, isGameOver: false });
+            Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1, isGameOver: false, gameFirstServer: 0 });
             pushTable(); 
         }
 
@@ -325,7 +318,6 @@
             const leftIdx = gameState[`p${leftPlayer}Index`];
             const rightIdx = gameState[`p${rightPlayer}Index`];
 
-            // 更新 UI 內容
             document.getElementById('name-left').innerText = players[leftIdx]?.name || `P${leftPlayer}`;
             document.getElementById('name-right').innerText = players[rightIdx]?.name || `P${rightPlayer}`;
             
@@ -338,25 +330,25 @@
             document.getElementById('score-left').innerText = gameState[`p${leftPlayer}Score`];
             document.getElementById('score-right').innerText = gameState[`p${rightPlayer}Score`];
 
-            // 按鈕樣式更新
             const btnLeft = document.getElementById('btn-score-left');
             const btnRight = document.getElementById('btn-score-right');
             btnLeft.className = `w-full py-8 rounded-[1.5rem] text-5xl font-black shadow-xl transition ${leftPlayer === 1 ? 'bg-blue-600 active:bg-blue-500' : 'bg-red-600 active:bg-red-500'}`;
             btnRight.className = `w-full py-8 rounded-[1.5rem] text-5xl font-black shadow-xl transition ${rightPlayer === 1 ? 'bg-blue-600 active:bg-blue-500' : 'bg-red-600 active:bg-red-500'}`;
 
-            // 發球燈號邏輯
             const totalPoints = gameState.p1Score + gameState.p2Score;
             const isDeuce = (gameState.p1Score >= 10 && gameState.p2Score >= 10);
             const turn = isDeuce ? (totalPoints % 2 === 0) : (Math.floor(totalPoints / 2) % 2 === 0);
-            const p1Serves = (gameState.gameFirstServer === 1) ? turn : !turn;
+            
+            const effectiveServer = gameState.gameFirstServer === 0 ? 1 : gameState.gameFirstServer;
+            const p1Serves = (effectiveServer === 1) ? turn : !turn;
 
             document.getElementById('card-left').classList.toggle('active-side', (leftPlayer === 1 && p1Serves) || (leftPlayer === 2 && !p1Serves));
             document.getElementById('card-right').classList.toggle('active-side', (rightPlayer === 1 && p1Serves) || (rightPlayer === 2 && !p1Serves));
 
-            // 同步選單
             document.getElementById('p1-select').value = gameState.p1Index;
             document.getElementById('p2-select').value = gameState.p2Index;
             document.getElementById('match-format').value = gameState.matchFormat;
+            document.getElementById('manual-server').value = gameState.gameFirstServer;
         }
 
         function updatePlayerOptions() {
@@ -378,7 +370,7 @@
         
         function resetMatch() { 
             if(confirm("Reset Current Match?")){ 
-                Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1, isGameOver: false }); 
+                Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1, isGameOver: false, gameFirstServer: 0 }); 
                 pushTable(); 
             } 
         }
