@@ -112,21 +112,24 @@
         </section>
 
         <main class="grid grid-cols-2 gap-4">
-            <div id="card-1" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
+            <!-- 左側顯示區 (會隨局數自動對調選手) -->
+            <div id="card-left" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
-                    <div id="name-1" class="player-name-text text-sm font-black text-blue-400 mb-1 truncate uppercase">---</div>
-                    <div id="games-1" class="text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">Sets: 0</div>
+                    <div id="name-left" class="player-name-text text-sm font-black mb-1 truncate uppercase">---</div>
+                    <div id="games-left" class="text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">Sets: 0</div>
                 </div>
-                <div id="score-1" class="score-text text-[8rem] leading-none font-black mb-4">0</div>
-                <button onclick="changeScore(1, 1)" class="w-full bg-blue-600 py-8 rounded-[1.5rem] text-5xl font-black shadow-xl active:bg-blue-500 transition">＋</button>
+                <div id="score-left" class="score-text text-[8rem] leading-none font-black mb-4">0</div>
+                <button id="btn-left" class="w-full py-8 rounded-[1.5rem] text-5xl font-black shadow-xl transition">＋</button>
             </div>
-            <div id="card-2" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
+
+            <!-- 右側顯示區 -->
+            <div id="card-right" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
-                    <div id="name-2" class="player-name-text text-sm font-black text-red-400 mb-1 truncate uppercase">---</div>
-                    <div id="games-2" class="text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">Sets: 0</div>
+                    <div id="name-right" class="player-name-text text-sm font-black mb-1 truncate uppercase">---</div>
+                    <div id="games-right" class="text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">Sets: 0</div>
                 </div>
-                <div id="score-2" class="score-text text-[8rem] leading-none font-black mb-4">0</div>
-                <button onclick="changeScore(2, 1)" class="w-full bg-red-600 py-8 rounded-[1.5rem] text-5xl font-black shadow-xl active:bg-red-500 transition">＋</button>
+                <div id="score-right" class="score-text text-[8rem] leading-none font-black mb-4">0</div>
+                <button id="btn-right" class="w-full py-8 rounded-[1.5rem] text-5xl font-black shadow-xl transition">＋</button>
             </div>
         </main>
 
@@ -136,7 +139,7 @@
         </div>
 
         <section class="space-y-3">
-            <h2 class="text-xs font-black uppercase text-yellow-500 px-2 tracking-widest flex items-center"><span class="mr-2">🏆</span> Ranking Leaderboard (All Players)</h2>
+            <h2 class="text-xs font-black uppercase text-yellow-500 px-2 tracking-widest flex items-center"><span class="mr-2">🏆</span> Ranking Leaderboard</h2>
             <div id="leaderboard" class="glass rounded-[1.5rem] border border-slate-800 overflow-hidden divide-y divide-slate-800/50"></div>
         </section>
 
@@ -147,7 +150,6 @@
     </div>
 
     <script>
-        // 已成功更新 Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
@@ -172,8 +174,7 @@
         if (isAdmin) {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             const badge = document.getElementById('mode-badge');
-            badge.innerText = "RANKING MODE"; badge.classList.replace('bg-blue-500/20', 'bg-red-500/20'); badge.classList.replace('text-blue-400', 'text-red-500');
-            badge.classList.add('border-red-500/30');
+            badge.innerText = "RANKING MODE"; badge.classList.replace('bg-blue-500/20', 'bg-red-500/20');
         }
 
         const playersRef = db.ref('gtt_unified/players');
@@ -190,13 +191,7 @@
             tableRef = db.ref(`gtt_unified/table_${num}_state`);
             tableRef.on('value', (snap) => {
                 const data = snap.val();
-                if (data) {
-                    gameState = data;
-                    if (!gameState.history) gameState.history = [];
-                    if (!gameState.setScores) gameState.setScores = [];
-                } else {
-                    initLocalState();
-                }
+                if (data) { gameState = data; } else { initLocalState(); }
                 updateUI();
                 document.getElementById('status-dot').classList.add('online');
                 document.getElementById('status-text').innerText = `Table ${currentTable} Live`;
@@ -211,11 +206,7 @@
         function updateTableUI() { 
             [1, 2, 3].forEach(n => {
                 const btn = document.getElementById(`btn-t${n}`);
-                if (n === currentTable) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                n === currentTable ? btn.classList.add('active') : btn.classList.remove('active');
             }); 
         }
 
@@ -226,15 +217,19 @@
         function changeScore(p, v) {
             if (gameState.isGameOver) return;
             if (gameState.p1Index === -1 || gameState.p2Index === -1) { alert("Select Players!"); return; }
+            
             gameState.history.push(JSON.stringify({ s1: gameState.p1Score, s2: gameState.p2Score, g1: gameState.p1Games, g2: gameState.p2Games, fs: gameState.gameFirstServer, ss: [...(gameState.setScores || [])] }));
             if (gameState.history.length > 2) gameState.history.shift();
+            
             p === 1 ? gameState.p1Score += v : gameState.p2Score += v;
+            
             const diff = Math.abs(gameState.p1Score - gameState.p2Score);
             if ((gameState.p1Score >= 11 || gameState.p2Score >= 11) && diff >= 2) {
                 gameState.setScores.push(`${gameState.p1Score}-${gameState.p2Score}`);
                 gameState.p1Score > gameState.p2Score ? gameState.p1Games++ : gameState.p2Games++;
                 gameState.p1Score = 0; gameState.p2Score = 0;
                 gameState.gameFirstServer = (gameState.gameFirstServer === 1) ? 2 : 1;
+                
                 if (gameState.p1Games >= gameState.matchFormat || gameState.p2Games >= gameState.matchFormat) { 
                     gameState.isGameOver = true;
                     saveMatchResult(); 
@@ -256,10 +251,9 @@
                 p2.elo += (p1Won ? -gain : gain);
                 pushPlayers();
                 gainDisplay = `(+${gain} pts)`;
-                document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} ${gainDisplay}`;
-            } else {
-                document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} WINS!`;
             }
+
+            document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} ${gainDisplay} WINS!`;
 
             globalHistory.unshift({
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -281,6 +275,59 @@
             pushTable(); 
         }
 
+        function updateUI() {
+            // 換邊邏輯：根據總局數判斷是否對調
+            const totalSets = gameState.p1Games + gameState.p2Games;
+            const isSwapped = totalSets % 2 !== 0; // 奇數局結束（第2, 4, 6局）時對調
+
+            const leftP = isSwapped ? 2 : 1;
+            const rightP = isSwapped ? 1 : 2;
+
+            // 更新左邊內容
+            document.getElementById('name-left').innerText = players[gameState[`p${leftP}Index`]]?.name || `SELECT P${leftP}`;
+            document.getElementById('name-left').className = `player-name-text text-sm font-black mb-1 truncate uppercase ${leftP === 1 ? 'text-blue-400' : 'text-red-400'}`;
+            document.getElementById('games-left').innerText = `Sets: ${gameState[`p${leftP}Games`]}`;
+            document.getElementById('score-left').innerText = gameState[`p${leftP}Score`];
+            const btnLeft = document.getElementById('btn-left');
+            btnLeft.className = `w-full py-8 rounded-[1.5rem] text-5xl font-black shadow-xl transition ${leftP === 1 ? 'bg-blue-600 active:bg-blue-500' : 'bg-red-600 active:bg-red-500'}`;
+            btnLeft.onclick = () => changeScore(leftP, 1);
+
+            // 更新右邊內容
+            document.getElementById('name-right').innerText = players[gameState[`p${rightP}Index`]]?.name || `SELECT P${rightP}`;
+            document.getElementById('name-right').className = `player-name-text text-sm font-black mb-1 truncate uppercase ${rightP === 1 ? 'text-blue-400' : 'text-red-400'}`;
+            document.getElementById('games-right').innerText = `Sets: ${gameState[`p${rightP}Games`]}`;
+            document.getElementById('score-right').innerText = gameState[`p${rightP}Score`];
+            const btnRight = document.getElementById('btn-right');
+            btnRight.className = `w-full py-8 rounded-[1.5rem] text-5xl font-black shadow-xl transition ${rightP === 1 ? 'bg-blue-600 active:bg-blue-500' : 'bg-red-600 active:bg-red-500'}`;
+            btnRight.onclick = () => changeScore(rightP, 1);
+
+            // 發球權外框邏輯
+            const totalPoints = gameState.p1Score + gameState.p2Score;
+            const turn = (gameState.p1Score >= 10 && gameState.p2Score >= 10) ? (totalPoints % 2 === 0) : (Math.floor(totalPoints / 2) % 2 === 0);
+            const p1Serves = (gameState.gameFirstServer === 1) ? turn : !turn;
+
+            document.getElementById('card-left').classList.toggle('active-side', (leftP === 1 && p1Serves) || (leftP === 2 && !p1Serves));
+            document.getElementById('card-right').classList.toggle('active-side', (rightP === 1 && p1Serves) || (rightP === 2 && !p1Serves));
+
+            document.getElementById('p1-select').value = gameState.p1Index;
+            document.getElementById('p2-select').value = gameState.p2Index;
+            document.getElementById('match-format').value = gameState.matchFormat;
+        }
+
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboard');
+            const sorted = [...players].sort((a, b) => b.elo - a.elo);
+            container.innerHTML = sorted.map((p, i) => `
+                <div class="flex items-center justify-between p-5 ${i === 0 ? 'bg-yellow-500/10' : ''}">
+                    <div class="flex items-center gap-4">
+                        <span class="w-8 text-center font-black text-lg ${i < 3 ? 'text-yellow-500' : 'text-slate-600'}">${i + 1}</span>
+                        <span class="font-black uppercase text-sm">${p.name}</span>
+                    </div>
+                    <div class="font-mono font-black text-yellow-500 text-lg">${p.elo}</div>
+                </div>
+            `).join('');
+        }
+
         function renderHistory() {
             const container = document.getElementById('history-list');
             container.innerHTML = globalHistory.map(r => `
@@ -298,47 +345,14 @@
             `).join('');
         }
 
-        function renderLeaderboard() {
-            const container = document.getElementById('leaderboard');
-            const sorted = [...players].sort((a, b) => b.elo - a.elo);
-            container.innerHTML = sorted.map((p, i) => `
-                <div class="flex items-center justify-between p-5 ${i === 0 ? 'bg-yellow-500/10' : ''}">
-                    <div class="flex items-center gap-4">
-                        <span class="w-8 text-center font-black text-lg ${i < 3 ? 'text-yellow-500' : 'text-slate-600'}">${i + 1}</span>
-                        <span class="font-black uppercase text-sm">${p.name}</span>
-                    </div>
-                    <div class="font-mono font-black text-yellow-500 text-lg">${p.elo}</div>
-                </div>
-            `).join('');
-        }
-
-        function updateUI() {
-            document.getElementById('score-1').innerText = gameState.p1Score;
-            document.getElementById('score-2').innerText = gameState.p2Score;
-            document.getElementById('games-1').innerText = `Sets: ${gameState.p1Games}`;
-            document.getElementById('games-2').innerText = `Sets: ${gameState.p2Games}`;
-            document.getElementById('name-1').innerText = players[gameState.p1Index]?.name || "SELECT P1";
-            document.getElementById('name-2').innerText = players[gameState.p2Index]?.name || "SELECT P2";
-            document.getElementById('match-format').value = gameState.matchFormat;
-            const total = gameState.p1Score + gameState.p2Score;
-            const turn = (gameState.p1Score >= 10 && gameState.p2Score >= 10) ? (total % 2 === 0) : (Math.floor(total / 2) % 2 === 0);
-            const p1Serves = (gameState.gameFirstServer === 1) ? turn : !turn;
-            document.getElementById('card-1').classList.toggle('active-side', gameState.p1Index !== -1 && p1Serves);
-            document.getElementById('card-2').classList.toggle('active-side', gameState.p2Index !== -1 && !p1Serves);
-            document.getElementById('p1-select').value = gameState.p1Index;
-            document.getElementById('p2-select').value = gameState.p2Index;
-        }
-
         function updatePlayerOptions() {
             const s1 = document.getElementById('p1-select'), s2 = document.getElementById('p2-select');
-            let options = `<option value="-1">-- SELECT --</option>`;
-            options += players.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
-            s1.innerHTML = options; s2.innerHTML = options;
+            let opts = `<option value="-1">-- SELECT --</option>` + players.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
+            s1.innerHTML = opts; s2.innerHTML = opts;
             s1.value = gameState.p1Index; s2.value = gameState.p2Index;
         }
 
         function undo() { 
-            if (gameState.isGameOver) return;
             if (gameState.history?.length > 0) { 
                 const last = JSON.parse(gameState.history.pop()); 
                 Object.assign(gameState, { p1Score: last.s1, p2Score: last.s2, p1Games: last.g1, p2Games: last.g2, gameFirstServer: last.fs, setScores: last.ss || [] }); 
@@ -346,13 +360,7 @@
             } 
         }
         
-        function resetMatch() { 
-            if(confirm("Reset Current Match?")){ 
-                Object.assign(gameState, { p1Score: 0, p2Score: 0, p1Games: 0, p2Games: 0, history: [], setScores: [], p1Index: -1, p2Index: -1, isGameOver: false }); 
-                pushTable(); 
-            } 
-        }
-
+        function resetMatch() { if(confirm("Reset Match?")){ initLocalState(); pushTable(); } }
         function syncSettings() { gameState.matchFormat = parseInt(document.getElementById('match-format').value); pushTable(); }
         function initGameServer() { gameState.gameFirstServer = parseInt(document.getElementById('manual-server').value); pushTable(); }
         function syncMatchSelection() { gameState.p1Index = parseInt(document.getElementById('p1-select').value); gameState.p2Index = parseInt(document.getElementById('p2-select').value); pushTable(); }
