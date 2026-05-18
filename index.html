@@ -53,7 +53,6 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 font-sans select-none">
 
-    <!-- 比賽結束彈窗 -->
     <div id="custom-alert" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] w-[85%] max-w-xs glass border border-yellow-500/50 p-8 rounded-[2.5rem] text-center shadow-2xl fade-in">
         <div class="text-5xl mb-4">🏆</div>
         <h2 class="text-2xl font-black uppercase mb-2">Match Finished</h2>
@@ -89,7 +88,6 @@
                     <option value="4">4 Sets Win (BO7)</option>
                     <option value="5">5 Sets Win (BO9)</option>
                 </select>
-                <!-- 更新後的發球選擇器 -->
                 <select id="manual-server" onchange="initGameServer()" class="bg-slate-800 p-3 rounded-xl border border-slate-700 font-bold text-yellow-500 text-sm outline-none">
                     <option value="0">-- Serve --</option>
                     <option value="1">P1 Serve</option>
@@ -114,7 +112,6 @@
             <div id="card-left" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
                     <div id="name-left" class="player-name-text text-sm font-black mb-1 truncate uppercase">---</div>
-                    <!-- 帶有發球燈號的 Sets 區域 -->
                     <div class="flex items-center justify-center text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">
                         <span id="serve-dot-left" class="serve-dot"></span>
                         <span id="games-left">Sets: 0</span>
@@ -126,7 +123,6 @@
             <div id="card-right" class="glass p-5 rounded-[2.5rem] border border-slate-800 text-center transition-all flex flex-col justify-between">
                 <div>
                     <div id="name-right" class="player-name-text text-sm font-black mb-1 truncate uppercase">---</div>
-                    <!-- 帶有發球燈號的 Sets 區域 -->
                     <div class="flex items-center justify-center text-[10px] text-slate-500 mb-2 font-mono font-bold uppercase tracking-widest">
                         <span id="serve-dot-right" class="serve-dot"></span>
                         <span id="games-right">Sets: 0</span>
@@ -148,13 +144,13 @@
         </section>
 
         <section class="space-y-3">
-            <h2 class="text-xs font-black uppercase text-slate-600 px-2 tracking-widest">Global History</h2>
+            <h2 class="text-xs font-black uppercase text-slate-600 px-2 tracking-widest">Global History (Recent 10)</h2>
             <div id="history-list" class="space-y-2"></div>
         </section>
     </div>
 
     <script>
-        // 你提供的 Firebase 設定已填入下方
+        // 已填入最新的 Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyAQlhy2WXQ3M8e_olUj3xIRmmxv759lrrc",
             authDomain: "gtt-rankings.firebaseapp.com",
@@ -265,13 +261,15 @@
             const p1Won = gameState.p1Games > gameState.p2Games;
             const p1 = players[gameState.p1Index], p2 = players[gameState.p2Index];
             let gainDisplay = "";
+            let gainPoints = 0; 
+
             if (isAdmin) {
                 const exp = 1 / (1 + Math.pow(10, (p2.elo - p1.elo) / 400));
-                const gain = Math.abs(Math.round(32 * ((p1Won ? 1 : 0) - exp)));
-                p1.elo += (p1Won ? gain : -gain); 
-                p2.elo += (p1Won ? -gain : gain);
+                gainPoints = Math.abs(Math.round(32 * ((p1Won ? 1 : 0) - exp)));
+                p1.elo += (p1Won ? gainPoints : -gainPoints); 
+                p2.elo += (p1Won ? -gainPoints : gainPoints);
                 pushPlayers();
-                gainDisplay = `(+${gain} pts)`;
+                gainDisplay = `(+${gainPoints} pts)`;
                 document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} ${gainDisplay}`;
             } else {
                 document.getElementById('winner-info').innerText = `${p1Won ? p1.name : p2.name} WINS!`;
@@ -282,7 +280,9 @@
                 score: `${gameState.p1Games}-${gameState.p2Games}`,
                 sets: gameState.setScores.join(', '),
                 mode: isAdmin ? "[RANKING]" : "[SANCIPA]",
-                table: `T${currentTable}`
+                table: `T${currentTable}`,
+                winner: p1Won ? p1.name : p2.name,
+                gain: isAdmin ? gainPoints : 0 
             });
             pushHistory();
             document.getElementById('custom-alert').style.display = 'block';
@@ -297,19 +297,29 @@
 
         function renderHistory() {
             const container = document.getElementById('history-list');
-            container.innerHTML = globalHistory.map(r => `
+            const recentHistory = globalHistory.slice(0, 10);
+            container.innerHTML = recentHistory.map(r => {
+                const showGain = (r.mode === '[RANKING]' && r.gain) ? `<span class="text-emerald-400 text-xs ml-1 font-mono">(+${r.gain} pts)</span>` : '';
+                
+                return `
                 <div class="glass p-4 rounded-2xl border border-slate-800 space-y-1">
                     <div class="flex justify-between items-center text-[10px] font-black uppercase">
                         <span class="${r.mode === '[RANKING]' ? 'text-red-500' : 'text-blue-400'}">${r.mode} | ${r.table}</span>
                         <span class="text-slate-600">${r.time}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <div class="text-sm font-bold uppercase"><span class="text-blue-400">${r.p1}</span> <span class="text-slate-700 text-[10px]">vs</span> <span class="text-red-400">${r.p2}</span></div>
+                        <div class="text-sm font-bold uppercase flex items-center">
+                            <span class="text-blue-400 ${r.winner === r.p1 ? 'underline decoration-yellow-500' : ''}">${r.p1}</span> 
+                            <span class="text-slate-700 text-[10px] mx-1">vs</span> 
+                            <span class="text-red-400 ${r.winner === r.p2 ? 'underline decoration-yellow-500' : ''}">${r.p2}</span>
+                            ${showGain}
+                        </div>
                         <div class="text-lg font-black text-yellow-500">${r.score}</div>
                     </div>
                     <div class="text-[10px] text-slate-500 font-mono italic">Sets: ${r.sets}</div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function renderLeaderboard() {
@@ -356,7 +366,6 @@
             const isDeuce = (gameState.p1Score >= 10 && gameState.p2Score >= 10);
             const turn = isDeuce ? (totalPoints % 2 === 0) : (Math.floor(totalPoints / 2) % 2 === 0);
             
-            // 如果沒選發球員，預設 P1 先發
             const effectiveServer = gameState.gameFirstServer === 0 ? 1 : gameState.gameFirstServer;
             const p1Serves = (effectiveServer === 1) ? turn : !turn;
 
@@ -366,7 +375,6 @@
             document.getElementById('card-left').classList.toggle('active-side', isLeftServing);
             document.getElementById('card-right').classList.toggle('active-side', isRightServing);
 
-            // 更新 Sets 前的小燈號
             document.getElementById('serve-dot-left').classList.toggle('active', isLeftServing);
             document.getElementById('serve-dot-right').classList.toggle('active', isRightServing);
 
